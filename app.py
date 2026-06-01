@@ -669,6 +669,30 @@ class H(BaseHTTPRequestHandler):
                 cases = timeline.cases_from_records(recs, limit=8)
                 result = {"kindc": kindc, "source_count": len(recs),
                           "cases": [{"case": c, "analysis": timeline.analyze(c)} for c in cases]}
+            elif self.path == "/api/timeline_gallery":
+                # 여러 질병 사례 모아보기: 실제 추출(A) + 대표 시나리오(B) 섞기
+                diseases = body.get("diseases") or [
+                    "근골격계질환(척추질환 제외)", "호흡기질환(천식 포함)", "난청",
+                    "심장질환", "뇌혈관질환", "정신질환"]
+                gallery = []
+                for dz in diseases:
+                    real = []
+                    if SERVICE_KEY:
+                        try:
+                            recs, _ = jbp.fetch_body(SERVICE_KEY, kindc=dz, rows=40)
+                            real = timeline.cases_from_records(recs, limit=1)
+                        except Exception:
+                            real = []
+                    if real:
+                        c = real[0]
+                        gallery.append({"disease": dz, "kind": "real",
+                                        "label": (c.get("source_case") or dz) + " · 실제 판정서",
+                                        "payload": c, "analysis": timeline.analyze(c)})
+                    else:
+                        s = timeline.sample_cases([dz])
+                        if s:
+                            gallery.append(s[0])
+                result = {"gallery": gallery}
             else:
                 return self._send(404, json.dumps({"error": "not found"}))
             self._send(200, json.dumps(result, ensure_ascii=False))

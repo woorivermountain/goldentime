@@ -278,6 +278,7 @@
       <div><h1>사실관계 타임라인</h1><p>전산 직력 · 의료기록을 한 축에 올려 불일치·공백·쟁점을 자동 점검합니다. (자료는 외부로 전송되지 않습니다)</p></div>
       <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
         <select id="tl-kindc2" style="padding:8px;border:1px solid var(--line2);border-radius:7px;font-size:12px;font-family:inherit"></select>
+        <button class="btn2" id="tl-gallery" style="margin:0;background:var(--accent)">여러 질병 사례 모아보기</button>
         <button class="btn2" id="tl-load" style="margin:0">판정서에서 실제 케이스 불러오기</button>
         <button class="btn2" id="tl-demo" style="margin:0;background:#475569">데모 예시</button>
       </div>
@@ -777,6 +778,35 @@ async function loadTLCases(){
   });
 }
 document.getElementById('tl-load').onclick=loadTLCases;
+// 여러 질병 사례 모아보기
+async function loadGallery(){
+  const list=document.getElementById('tl-caselist');
+  list.style.display='block';list.innerHTML='여러 질병 판정서 조회 중… (수 초 걸릴 수 있어요)';
+  let d;try{const r=await fetch('/api/timeline_gallery',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({})});d=await r.json();}catch(e){list.innerHTML='조회 실패 — 서버 확인';return;}
+  const g=d.gallery||[];
+  if(!g.length){list.innerHTML='사례를 불러오지 못했습니다.';return;}
+  list.innerHTML='<b style="color:var(--accent)">질병별 사례 '+g.length+'건</b> — 카드를 클릭하면 해당 사례의 타임라인이 생성됩니다:<div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px">'+
+    g.map((c,i)=>{const real=c.kind==='real';
+      return '<button class="galcard" data-i="'+i+'" style="text-align:left;padding:9px 12px;border:1px solid var(--line2);border-radius:9px;background:#fff;cursor:pointer;font-family:inherit;min-width:180px">'+
+        '<div style="font-size:11.5px;font-weight:700;color:var(--ink)">'+(c.label||c.disease)+'</div>'+
+        '<div style="font-size:10px;color:var(--ink3);margin-top:3px">'+c.disease+'</div>'+
+        '<div style="margin-top:5px"><span style="font-size:9px;padding:2px 6px;border-radius:8px;background:'+(real?'var(--soft)':'var(--hold-bg)')+';color:'+(real?'var(--accent)':'#92400e')+'">'+(real?'실제 판정서':'대표 예시')+'</span></div>'+
+        '</button>';}).join('')+'</div>';
+  GALLERY=g;
+  list.querySelectorAll('.galcard').forEach(b=>b.onclick=()=>{
+    const c=GALLERY[+b.dataset.i];const p=c.payload;
+    document.getElementById('tl-disease').value=p.disease||c.disease||'';
+    document.getElementById('tl-stated').value=p.stated_years||'';
+    document.getElementById('tl-onset').value=p.onset||'';
+    document.getElementById('tl-careers').innerHTML='';document.getElementById('tl-medical').innerHTML='';
+    (p.careers||[]).forEach(careerRow);(p.medical||[]).forEach(medRow);
+    if(!(p.careers||[]).length)careerRow();if(!(p.medical||[]).length)medRow();
+    renderTL(c.analysis);
+    list.querySelectorAll('.galcard').forEach(x=>x.style.background='#fff');b.style.background='var(--soft)';
+  });
+}
+let GALLERY=[];
+document.getElementById('tl-gallery').onclick=loadGallery;
 document.getElementById('tl-run').onclick=runTL;
 // ── 3단계: 판정위 보고서 ──
 function buildReport(){
