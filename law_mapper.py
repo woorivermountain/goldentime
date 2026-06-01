@@ -103,9 +103,7 @@ def predict(case_text, exposure="", job="", years=None):
         hits = [s for s in kb["signals"] if s in text]
         if not hits:
             continue
-        # 신뢰도: 신호 적중수 기반(0~1 정규화, 거친 휴리스틱)
         conf = min(1.0, round(len(hits) / 4, 2))
-        # 요건별 자동 충족 추정(아주 보수적으로): 기간 요건만 입력으로 일부 확인
         crits = []
         for c in kb["criteria"]:
             status = "확인필요"
@@ -117,6 +115,36 @@ def predict(case_text, exposure="", job="", years=None):
             "confidence": conf, "matched_signals": hits, "criteria": crits,
         })
     results.sort(key=lambda x: x["confidence"], reverse=True)
+
+    # ── 근골격계: 척추/비척추 부위 분기 (둘 다 후보로 제시) ──
+    SPINE_KW = ["허리", "목", "요추", "경추", "척추", "디스크", "추간판", "협착"]
+    LIMB_KW = ["어깨", "무릎", "손목", "팔꿈치", "발목", "손가락", "회전근개"]
+    msk = next((r for r in results if r["disease"] == "근골격계질환"), None)
+    if msk:
+        has_spine = any(k in text for k in SPINE_KW)
+        has_limb = any(k in text for k in LIMB_KW)
+        spine_pred = {
+            "disease": "근골격계질환(척추)", "kindc": "근골격계질환 (척추질환)",
+            "ref": "별표3 제2호", "confidence": msk["confidence"],
+            "matched_signals": [k for k in SPINE_KW if k in text],
+            "criteria": msk["criteria"],
+        }
+        nonspine_pred = {
+            **msk, "disease": "근골격계질환(척추 제외)",
+            "kindc": "근골격계질환(척추질환 제외)",
+        }
+        # 기존 단일 근골격계 항목을 제거하고, 해당하는 후보들로 교체
+        results = [r for r in results if r["disease"] != "근골격계질환"]
+        if has_spine and has_limb:
+            # 부위가 섞임 → 둘 다 후보(척추 우선)
+            results = [spine_pred, nonspine_pred] + results
+        elif has_spine:
+            # 허리·목 등 척추 신호 → 척추질환 1순위 + 척추제외도 후보로 함께
+            results = [spine_pred, nonspine_pred] + results
+        else:
+            # 어깨·무릎 등만 → 척추제외
+            results = [nonspine_pred] + results
+        # 신뢰도 재정렬(척추 신호가 분명하면 척추 우선 유지)
     return results
 
 
