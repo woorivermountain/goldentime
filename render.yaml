@@ -1,0 +1,12 @@
+services:
+  - type: web
+    name: sanjae-dashboard
+    runtime: python
+    plan: free
+    buildCommand: ""
+    startCommand: python app.py
+    envVars:
+      - key: SERVICE_KEY
+        sync: false
+      - key: PYTHON_VERSION
+        value: "3.11.0"

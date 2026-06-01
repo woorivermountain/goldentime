@@ -1,0 +1,835 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>산재 재조사 판정서 워크벤치</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.min.css">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#eef0f2;--surface:#fff;--surface2:#f7f8f9;--ink:#15171b;--ink2:#545b64;--ink3:#919aa3;
+    --line:#e6e9ec;--line2:#d8dce0;--accent:#0f766e;--accent2:#0d9488;--soft:#e2f0ee;
+    --ok:#15803d;--ok-bg:#e8f4ed;--ok-line:#bfe0cb;--no:#b42318;--no-bg:#fcebe9;--no-line:#f1c4bd;
+    --hold:#b45309;--hold-bg:#fdf3e7;--hold-line:#f0c9a0;
+    --side:#15181d;--side2:#1d2127;--side-ink:#cdd3da;--side-ink2:#7d8893;--path:#0d9488;}
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--bg);color:var(--ink);font-family:'Pretendard',system-ui,sans-serif;font-size:13.5px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  .mono{font-family:'IBM Plex Mono',monospace}
+  .wb{display:grid;grid-template-columns:320px 1fr 360px;height:100vh;overflow:hidden}
+  @media(max-width:1180px){.wb{grid-template-columns:280px 1fr}.right{display:none}}
+  @media(max-width:760px){.wb{grid-template-columns:1fr}.left{display:none}}
+  .left{background:var(--side);color:var(--side-ink);display:flex;flex-direction:column;overflow:auto}
+  .brand{display:flex;align-items:center;gap:10px;padding:16px 18px;border-bottom:1px solid #262b32}
+  .brand .lg{width:32px;height:32px;border-radius:8px;background:var(--accent2);display:grid;place-items:center;color:#fff;font-weight:800;flex:none}
+  .brand b{font-size:14px;color:#fff;display:block;font-weight:700}.brand span{font-size:10.5px;color:var(--side-ink2)}
+  .lsec{padding:14px 18px;border-bottom:1px solid #262b32}
+  .lsec .t{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--side-ink2);margin:0 0 10px;font-weight:600;display:flex;align-items:center;gap:6px}
+  .badgeAB{font-size:9px;background:var(--accent2);color:#fff;padding:1px 6px;border-radius:10px;font-weight:700}
+  .f{margin-bottom:9px}.f label{display:block;font-size:10.5px;color:var(--side-ink2);margin-bottom:4px}
+  .f input,.f select{width:100%;padding:9px 10px;border:1px solid #2c323a;background:var(--side2);color:#fff;border-radius:7px;font-family:inherit;font-size:12.5px}
+  .f input:focus,.f select:focus{outline:none;border-color:var(--accent2)}
+  .f select option{background:#1d2127}
+  .chips{display:flex;flex-wrap:wrap;gap:5px;margin-bottom:4px}
+  .chip-btn{font-size:11px;padding:5px 10px;border-radius:16px;border:1px solid #2c323a;background:transparent;color:var(--side-ink);cursor:pointer;user-select:none;transition:.12s}
+  .chip-btn:hover{border-color:var(--accent2)}
+  .chip-btn.on{background:var(--accent2);border-color:var(--accent2);color:#fff;font-weight:600}
+  .btn{width:100%;padding:11px;border:none;border-radius:7px;cursor:pointer;background:var(--accent2);color:#fff;font-family:inherit;font-weight:700;font-size:13px;margin-top:6px}
+  .btn:hover{background:#0b8076}.btn:disabled{opacity:.5}
+  .btn.ghost{background:transparent;border:1px solid #2c323a;color:var(--side-ink);font-weight:500;font-size:11.5px;padding:7px;margin-top:4px}
+  .btn.ghost:hover{border-color:var(--accent2)}
+  .seal{margin-top:8px;padding:9px;border:1px dashed #2c8a7e;border-radius:8px;background:rgba(45,138,126,.08);font-size:11px}
+  .hint{font-size:10px;color:var(--side-ink2);margin-top:5px;line-height:1.5}
+  .mode{margin-top:auto;padding:12px 18px;font-size:11px;border-top:1px solid #262b32}
+  .mdot{display:inline-block;width:7px;height:7px;border-radius:50%;margin-right:6px;background:var(--side-ink2)}
+  .mdot.live{background:#34d399}.mdot.demo{background:#fbbf24}
+  .center{display:flex;flex-direction:column;overflow:hidden;background:var(--bg);position:relative}
+  .zbtn{width:34px;height:34px;border-radius:8px;border:1px solid var(--line2);background:var(--surface);color:var(--ink);font-size:18px;font-weight:700;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.08)}
+  .zbtn:hover{background:var(--surface2);border-color:var(--accent2)}
+  #zoomctl{display:none}
+  .chead{padding:14px 22px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:12px}
+  .chead h1{font-size:15px;margin:0;font-weight:700}.chead p{margin:0;font-size:11.5px;color:var(--ink3)}
+  .legend{margin-left:auto;display:flex;gap:12px;font-size:11px;color:var(--ink2);align-items:center}
+  .lgi{display:flex;align-items:center;gap:5px}.sw{width:10px;height:10px;border-radius:3px;display:inline-block}
+  .canvas-wrap{flex:1;overflow:auto;padding:10px}
+  #tree{display:block;margin:0 auto}
+  .ph{display:grid;place-items:center;height:100%;color:var(--ink3);font-size:13px;text-align:center;line-height:1.8}
+  .edge{fill:none;stroke:var(--line2);stroke-width:1.5}.edge.onpath{stroke:var(--path);stroke-width:2.5}
+  .node.clickable{cursor:pointer}
+  .right{background:var(--surface);border-left:1px solid var(--line);overflow:auto}
+  .rsec{padding:15px 18px;border-bottom:1px solid var(--line)}
+  .rsec .t{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);font-weight:700;margin:0 0 10px}
+  .det-empty{color:var(--ink3);font-size:12.5px;padding:8px 0}
+  .kv{display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--line);font-size:12.5px;gap:10px}
+  .kv:last-child{border:none}.kv .k{color:var(--ink3);flex:none}.kv .v{font-weight:600;text-align:right}
+  .badge{font-size:10.5px;font-weight:700;padding:2px 9px;border-radius:14px}
+  .badge.ok{color:var(--ok);background:var(--ok-bg)}.badge.no{color:var(--no);background:var(--no-bg)}.badge.hold{color:var(--hold);background:var(--hold-bg)}
+  .chip{display:inline-block;font-size:11px;padding:3px 9px;border-radius:6px;background:var(--soft);color:var(--accent);margin:0 4px 4px 0}
+  .chip.gray{background:#eef0f2;color:var(--ink2)}
+  .excerpt{font-size:11.5px;color:var(--ink2);background:var(--surface2);border-radius:8px;padding:10px 12px;line-height:1.6;border-left:3px solid var(--accent)}
+  .gt{font-size:11.5px;font-weight:700;color:var(--accent);margin:13px 0 7px}
+  .glist{margin:0;padding:0;list-style:none}
+  .glist li{padding:6px 0 6px 17px;position:relative;font-size:12.3px;border-bottom:1px solid var(--line)}
+  .glist li:last-child{border:none}.glist li:before{content:"\203A";position:absolute;left:2px;color:var(--accent);font-weight:700}
+  .stat{display:flex;gap:8px;margin:8px 0}
+  .stat .s{flex:1;text-align:center;padding:8px;border-radius:8px;background:var(--surface2);border:1px solid var(--line)}
+  .stat .s .n{font-family:'IBM Plex Mono';font-size:18px;font-weight:600}.stat .s .l{font-size:10px;color:var(--ink3)}
+  .stat .s.ok .n{color:var(--ok)}.stat .s.no .n{color:var(--no)}.stat .s.hold .n{color:var(--hold)}
+  .disc{font-size:11.3px;color:var(--ink2);background:var(--hold-bg);border:1px solid var(--hold-line);border-radius:8px;padding:10px 12px;margin:14px 18px}
+  .prov{font-size:11px;color:var(--ink3);padding:11px 18px;border-bottom:1px solid var(--line)}
+  .prov b{color:var(--ink2)}.prov a{color:var(--accent);text-decoration:none}
+  .docbtn{font-size:11.5px;color:#fff;background:var(--accent2);border:none;border-radius:6px;padding:7px 12px;cursor:pointer;font-family:inherit}
+  .docbtn:hover{background:#0b8076}
+  .modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:none;align-items:center;justify-content:center;z-index:100}
+  .modal-box{background:#fff;width:min(700px,90vw);max-height:80vh;border-radius:12px;display:flex;flex-direction:column;overflow:hidden}
+  .modal-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:between;gap:10px}
+  .modal-head h3{margin:0;font-size:14px;flex:1}
+  .modal-close{border:none;background:var(--surface2);border-radius:6px;width:28px;height:28px;cursor:pointer;font-size:16px}
+  .modal-body{padding:18px;overflow:auto;font-size:12.5px;line-height:1.7;color:var(--ink2)}
+  /* 탭 */
+  .tabbar{display:flex;gap:2px;background:var(--side);padding:0 14px;border-bottom:1px solid #262b32}
+  .tab{padding:13px 18px;color:var(--side-ink2);font-size:13px;font-weight:600;cursor:pointer;border-bottom:2px solid transparent}
+  .tab:hover{color:var(--side-ink)}
+  .tab.active{color:#fff;border-bottom-color:var(--accent2)}
+  .tabpane{display:none;height:calc(100vh - 49px)}
+  .tabpane.active{display:block}
+  #t1.tabpane.active{display:block}
+  #t1 .wb{height:100%}
+  /* 타임라인 */
+  .tl-wrap{height:100%;display:flex;flex-direction:column;background:var(--bg)}
+  .tl-head{padding:16px 22px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px}
+  .tl-head h1{font-size:16px;margin:0}.tl-head p{margin:2px 0 0;font-size:11.5px;color:var(--ink3)}
+  .btn2{margin-left:auto;background:var(--accent2);color:#fff;border:none;border-radius:8px;padding:10px 15px;font-size:12.5px;font-weight:700;cursor:pointer;font-family:inherit;white-space:nowrap}
+  .btn2:hover{background:#0b8076}.btn2.full{margin:0;width:100%;margin-top:6px}
+  .tl-body{flex:1;display:grid;grid-template-columns:340px 1fr;overflow:hidden}
+  .tl-left{overflow:auto;padding:16px;border-right:1px solid var(--line);background:var(--surface2)}
+  .tl-right{overflow:auto;padding:18px}
+  .tl-card{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:13px;margin-bottom:12px}
+  .tl-card .ct{font-size:11px;font-weight:700;color:var(--accent);margin:0 0 9px;text-transform:uppercase;letter-spacing:.04em}
+  .frow{margin-bottom:8px}.frow label{display:block;font-size:10.5px;color:var(--ink3);margin-bottom:3px}
+  .frow input{width:100%;padding:7px 9px;border:1px solid var(--line2);border-radius:6px;font-size:12.5px;font-family:inherit}
+  .crow{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;padding:8px;background:var(--surface2);border-radius:7px;position:relative}
+  .crow input{padding:5px 7px;border:1px solid var(--line2);border-radius:5px;font-size:11px;font-family:inherit}
+  .crow .full2{grid-column:1/3}
+  .crow .haz{grid-column:1/3;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink2)}
+  .crow .del{position:absolute;top:4px;right:6px;cursor:pointer;color:var(--no);font-size:13px;border:none;background:none}
+  .addrow{width:100%;padding:7px;border:1px dashed var(--line2);background:none;border-radius:7px;color:var(--ink3);font-size:11.5px;cursor:pointer;font-family:inherit}
+  .addrow:hover{border-color:var(--accent2);color:var(--accent)}
+  .tl-chart{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:16px;margin-bottom:16px;min-height:220px}
+  .sumbar{display:flex;gap:10px;margin-bottom:14px}
+  .sumbar .sb{flex:1;background:var(--surface2);border:1px solid var(--line);border-radius:9px;padding:10px;text-align:center}
+  .sumbar .sb .n{font-family:'IBM Plex Mono';font-size:20px;font-weight:600;color:var(--accent)}
+  .sumbar .sb .l{font-size:10px;color:var(--ink3);margin-top:2px}
+  .tlrow{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:12px}
+  .tlrow .yr{font-family:'IBM Plex Mono';font-size:11px;color:var(--ink3);width:130px;flex:none}
+  .tlrow .bar{height:18px;border-radius:4px;flex:none}
+  .tlrow.med .dot{width:10px;height:10px;border-radius:50%;background:var(--no);flex:none}
+  .tlrow.onset .dot{width:10px;height:10px;border-radius:50%;background:var(--hold);flex:none}
+  .issue{border-left:3px solid var(--ink3);background:var(--surface);border-radius:0 8px 8px 0;padding:11px 13px;margin-bottom:10px;box-shadow:0 1px 3px rgba(0,0,0,.05)}
+  .issue.high{border-left-color:var(--no)}.issue.mid{border-left-color:var(--hold)}.issue.info{border-left-color:var(--accent2)}
+  .issue .it{font-size:12.5px;font-weight:700;margin-bottom:4px}
+  .issue.high .it{color:var(--no)}.issue.mid .it{color:var(--hold)}.issue.info .it{color:var(--accent)}
+  .issue .tx{font-size:12px;color:var(--ink2);line-height:1.6}
+  .issue .ac{margin-top:6px;font-size:11.5px;color:var(--accent);background:var(--soft);border-radius:6px;padding:6px 9px}
+  .rpt-wrap{height:100%;display:grid;place-items:center;background:var(--bg)}
+  .rpt-page{height:100%;display:flex;flex-direction:column;background:var(--bg)}
+  .rpt-head{padding:16px 22px;background:var(--surface);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:14px}
+  .rpt-head h1{font-size:16px;margin:0}.rpt-head p{margin:2px 0 0;font-size:11.5px;color:var(--ink3)}
+  .rpt-body{flex:1;overflow:auto;padding:26px}
+  .rpt-doc{background:#fff;width:min(820px,100%);margin:0 auto;box-shadow:0 2px 12px rgba(0,0,0,.08);border-radius:8px;padding:40px 46px}
+  .rpt-doc h2{font-size:20px;text-align:center;margin:0 0 4px;letter-spacing:.02em}
+  .rpt-doc .sub{text-align:center;font-size:11.5px;color:var(--ink3);margin-bottom:24px;padding-bottom:16px;border-bottom:2px solid var(--ink)}
+  .rsec2{margin-bottom:22px}
+  .rsec2 .h{font-size:13px;font-weight:700;color:var(--accent);border-left:3px solid var(--accent);padding-left:8px;margin-bottom:10px}
+  .rtable{width:100%;border-collapse:collapse;font-size:12.5px}
+  .rtable td{padding:7px 10px;border:1px solid var(--line2);vertical-align:top}
+  .rtable td.k{background:var(--surface2);font-weight:600;width:130px;color:var(--ink2)}
+  .rstat{display:flex;gap:10px;margin:6px 0 4px}
+  .rstat .b{flex:1;text-align:center;padding:10px;border:1px solid var(--line2);border-radius:8px}
+  .rstat .b .n{font-family:'IBM Plex Mono';font-size:20px;font-weight:600}
+  .rstat .b.ok .n{color:var(--ok)}.rstat .b.no .n{color:var(--no)}.rstat .b.hold .n{color:var(--hold)}
+  .rstat .b .l{font-size:10px;color:var(--ink3)}
+  .rlist{margin:0;padding-left:0;list-style:none}
+  .rlist li{padding:7px 0 7px 18px;position:relative;font-size:12.5px;border-bottom:1px solid var(--line);line-height:1.6}
+  .rlist li:before{content:"\2713";position:absolute;left:0;color:var(--accent);font-weight:700}
+  .rlist li:last-child{border:none}
+  .rissue{font-size:12.5px;padding:8px 0;border-bottom:1px solid var(--line);line-height:1.6}
+  .rissue:last-child{border:none}
+  .rissue .lv{display:inline-block;font-size:10px;font-weight:700;padding:1px 7px;border-radius:10px;margin-right:6px}
+  .rissue .lv.high{background:var(--no-bg);color:var(--no)}.rissue .lv.mid{background:var(--hold-bg);color:var(--hold)}.rissue .lv.info{background:var(--soft);color:var(--accent)}
+  .rfoot{margin-top:26px;padding-top:14px;border-top:1px solid var(--line2);font-size:11px;color:var(--ink3);line-height:1.6}
+  /* 유사 사례 카드 */
+  .simcard{border:1px solid var(--line2);border-radius:10px;padding:11px;margin-bottom:9px;background:var(--surface)}
+  .simhead{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+  .simhead .rank{width:18px;height:18px;border-radius:50%;background:var(--accent2);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;flex:none}
+  .simpct{margin-left:auto;font-size:11px;font-weight:700;color:var(--accent);font-family:'IBM Plex Mono'}
+  .simno{font-size:11.5px;color:var(--ink2);font-weight:600;margin-bottom:6px;font-family:'IBM Plex Mono'}
+  .simwhy{display:flex;flex-wrap:wrap;gap:4px}
+  .rtag{font-size:10px;background:var(--soft);color:var(--accent);border-radius:5px;padding:2px 7px}
+  /* 시스템 구조 */
+  .arch-page{height:100%;display:flex;flex-direction:column;background:var(--bg)}
+  .arch-head{padding:16px 22px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .arch-head h1{font-size:16px;margin:0}.arch-head p{margin:3px 0 0;font-size:11.5px;color:var(--ink3)}
+  .arch-body{flex:1;overflow:auto;padding:24px;max-width:1100px;margin:0 auto;width:100%}
+  .arch-flow{display:flex;align-items:stretch;gap:10px;margin-bottom:26px;flex-wrap:wrap}
+  .afbox{flex:1;min-width:200px;border-radius:12px;padding:14px;border:1px solid var(--line2)}
+  .afbox.data{background:#eef6f5;border-color:var(--accent2)}
+  .afbox.proc{background:#fff}
+  .afbox.out{background:var(--surface2)}
+  .afbox .aft{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.04em;margin-bottom:10px;color:var(--accent)}
+  .afbox.out .aft{color:var(--ink2)}
+  .afi{font-size:12px;background:rgba(255,255,255,.7);border:1px solid var(--line);border-radius:8px;padding:9px 11px;margin-bottom:7px;line-height:1.5}
+  .afi span{font-size:10.5px;color:var(--ink3)}
+  .afarrow{display:flex;align-items:center;font-size:22px;color:var(--accent2);font-weight:700}
+  .arch-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:22px}
+  .acard{background:#fff;border:1px solid var(--line2);border-radius:12px;padding:16px}
+  .acard .ach{font-size:13.5px;font-weight:700;margin-bottom:10px;color:var(--ink)}
+  .acard .now{font-size:12px;color:var(--ink2);line-height:1.6;padding:9px 11px;background:var(--surface2);border-radius:8px;margin-bottom:8px}
+  .acard .ai{font-size:12px;color:var(--accent);line-height:1.6;padding:9px 11px;background:var(--soft);border-radius:8px;border:1px solid var(--accent2)}
+  .arch-note{font-size:12.5px;color:var(--ink2);line-height:1.7;background:var(--hold-bg);border:1px solid var(--hold-line);border-radius:10px;padding:15px 18px}
+  .arch-note b{color:var(--ink)}
+  @media(max-width:760px){.arch-grid{grid-template-columns:1fr}}
+  /* 사용 안내 */
+  .guide-page{height:100%;display:flex;flex-direction:column;background:var(--bg)}
+  .guide-head{padding:16px 22px;background:var(--surface);border-bottom:1px solid var(--line)}
+  .guide-head h1{font-size:16px;margin:0}.guide-head p{margin:3px 0 0;font-size:11.5px;color:var(--ink3)}
+  .guide-body{flex:1;overflow:auto;padding:24px;max-width:880px;margin:0 auto;width:100%}
+  .gcard{background:#fff;border:1px solid var(--line2);border-radius:12px;padding:18px;margin-bottom:14px}
+  .gch{font-size:14px;font-weight:700;margin-bottom:10px;color:var(--accent);border-left:3px solid var(--accent);padding-left:9px}
+  .gp{font-size:12.5px;color:var(--ink2);line-height:1.65;margin:0 0 8px}
+  .gul{margin:0 0 10px;padding-left:18px}
+  .gul li{font-size:12.5px;color:var(--ink2);line-height:1.7;margin-bottom:3px}
+  .greal{font-size:12px;background:var(--soft);color:var(--accent);border-radius:8px;padding:9px 12px;line-height:1.6}
+  .gdemo{font-size:12px;background:var(--hold-bg);color:#92400e;border:1px solid var(--hold-line);border-radius:8px;padding:9px 12px;line-height:1.6}
+  .gnote{background:var(--surface2);border:1px solid var(--line2);border-radius:12px;padding:16px 18px;margin-bottom:14px;font-size:12.5px;color:var(--ink2);line-height:1.7}
+  .gnote.warn{background:#fef2f2;border-color:#fecaca;color:#991b1b}
+  .gnote b{color:var(--ink)}.gnote.warn b{color:#991b1b}
+  @media print{
+    @page{margin:14mm}
+    html,body{height:auto!important;overflow:visible!important;background:#fff!important}
+    .tabbar,.rpt-head{display:none!important}
+    .tabpane{display:none!important;height:auto!important}
+    #t3.tabpane{display:block!important;height:auto!important}
+    .rpt-page{height:auto!important;display:block!important}
+    .rpt-body{flex:none!important;height:auto!important;overflow:visible!important;padding:0!important;display:block!important}
+    .rpt-doc{box-shadow:none!important;width:100%!important;padding:0!important;border-radius:0!important}
+    .rsec2{break-inside:avoid;page-break-inside:avoid}
+    .rissue,.rlist li{break-inside:avoid;page-break-inside:avoid}
+    .rpt-doc h2{break-after:avoid}
+  }
+</style>
+<div class="tabbar">
+  <div class="tab active" data-tab="t1">① 유사 판정서 분석</div>
+  <div class="tab" data-tab="t2">② 사실관계 타임라인</div>
+  <div class="tab" data-tab="t3">③ 판정위 보고서</div>
+  <div class="tab" data-tab="t4" style="margin-left:auto">⚙ 시스템 구조</div>
+  <div class="tab" data-tab="t5">📖 사용 안내</div>
+</div>
+<div id="t1" class="tabpane active">
+<div class="wb">
+  <aside class="left">
+    <div class="brand"><div class="lg">災</div><div><b>판정서 워크벤치</b><span>업무상질병 재조사 · 공공빅데이터</span></div></div>
+
+    <div class="lsec"><p class="t"><span class="badgeAB">A</span> 일상어로 시작</p>
+      <div class="f"><label>민원인 일상어 / 사실관계</label><input id="s-text" placeholder="예: 허리가 아프고 무거운 걸 많이 드는 일을 오래 했다"></div>
+      <button class="btn ghost" id="ex-btn">예시 채우기</button>
+      <button class="btn" id="predict" style="margin-top:6px">분류어로 변환 · 사전 예측 기록</button>
+      <div id="seal-box"></div>
+      <div id="adv-box" style="display:none">
+        <div class="f" style="margin-top:8px"><label>자문위 결정문 입력 <span style="color:var(--side-ink2);font-weight:400">(판정 결과·질병명을 붙여넣기)</span></label>
+          <textarea id="s-adv-text" rows="3" placeholder="예: 신청 상병 '직업성 천식'은 업무와 상당인과관계가 인정되어… (자문위 결정문 일부 또는 질병명)" style="width:100%;padding:8px 10px;border:1px solid var(--line2);border-radius:7px;font-size:12px;font-family:inherit;resize:vertical"></textarea></div>
+        <button class="btn" id="compare" style="background:#3a6b46">결정문에서 분류 인식 · 대조</button>
+        <div id="cmp-box"></div>
+      </div>
+    </div>
+
+    <div class="lsec"><p class="t"><span class="badgeAB">B</span> 분류 선택으로 시작</p>
+      <div class="f"><label>질병구분</label><select id="i-kindc"></select></div>
+      <div class="f"><label>직종 (선택)</label><select id="i-kindb"><option value="">전체</option></select></div>
+      <label style="font-size:10.5px;color:var(--side-ink2)"><span id="lab-axis1">신체부위</span> <span style="color:var(--accent2)">(조회 필터)</span></label>
+      <div class="chips" id="parts"></div>
+      <label style="font-size:10.5px;color:var(--side-ink2);margin-top:6px;display:block"><span id="lab-axis2">부담요인</span> <span style="color:var(--accent2)">(조회 필터)</span></label>
+      <div class="chips" id="burdens"></div>
+      <button class="btn" id="gen" style="margin-top:8px">판정서 트리 생성</button>
+      <div class="hint">A·B 어느 쪽으로 시작해도 됩니다. A로 변환하면 질병구분이 자동 선택됩니다.</div>
+    </div>
+    <div class="mode"><span class="mdot" id="mdot"></span><span id="mtext">모드 확인 중</span></div>
+  </aside>
+
+  <section class="center">
+    <div class="chead"><div><h1>판정서 분류 트리</h1><p>질병구분 → 신체부위 → 개별 판정서 · 클릭 시 상세</p></div>
+      <div class="legend"><span class="lgi"><span class="sw" style="background:var(--path)"></span>현재 경로</span><span class="lgi"><span class="sw" style="background:var(--ok)"></span>인정</span><span class="lgi"><span class="sw" style="background:var(--no)"></span>불인정</span><span class="lgi"><span class="sw" style="background:var(--hold)"></span>보류/이송</span></div></div>
+    <div class="canvas-wrap" id="cw"><div class="ph">좌측 <b>A</b>(일상어) 또는 <b>B</b>(분류 선택)로 시작하세요.<br>질병판정서 4만여 건에서 유사 사례를 찾아 트리로 보여줍니다.</div></div>
+    <div id="zoomctl" style="position:absolute;right:24px;bottom:18px;display:none;gap:6px;z-index:5">
+      <button class="zbtn" id="zin">+</button><button class="zbtn" id="zout">−</button><button class="zbtn" id="zfit" style="font-size:11px">맞춤</button>
+    </div>
+  </section>
+
+  <aside class="right" id="right">
+    <div class="prov" id="prov"></div>
+    <div class="rsec" id="sim-sec" style="display:none"><p class="t">🎯 가장 유사한 판정서</p><div id="sim-box"></div></div>
+    <div class="rsec"><p class="t" id="det-title">노드 상세</p><div id="det"><div class="det-empty">트리에서 노드를 선택하세요.</div></div></div>
+    <div class="rsec"><p class="t">재조사 가이드라인</p><div id="guide"></div></div>
+    <div class="disc"><b>⚠ 참고용 보조 지표</b> — 인정/불인정 판정이 아니며 최종 판단은 업무상질병판정위원회 권한입니다.</div>
+  </aside>
+</div>
+</div><!-- /t1 -->
+
+<div id="t2" class="tabpane">
+  <div class="tl-wrap">
+    <div class="tl-head">
+      <div><h1>사실관계 타임라인</h1><p>전산 직력 · 의료기록을 한 축에 올려 불일치·공백·쟁점을 자동 점검합니다. (자료는 외부로 전송되지 않습니다)</p></div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <select id="tl-kindc2" style="padding:8px;border:1px solid var(--line2);border-radius:7px;font-size:12px;font-family:inherit"></select>
+        <button class="btn2" id="tl-load" style="margin:0">판정서에서 실제 케이스 불러오기</button>
+        <button class="btn2" id="tl-demo" style="margin:0;background:#475569">데모 예시</button>
+      </div>
+    </div>
+    <div id="tl-caselist" style="display:none;padding:10px 22px;background:var(--surface2);border-bottom:1px solid var(--line);font-size:12px"></div>
+    <div class="tl-body">
+      <div class="tl-left">
+        <div class="tl-card">
+          <p class="ct">기본 정보</p>
+          <div class="frow"><label>질병구분</label><input id="tl-disease" placeholder="호흡기질환(천식 포함)"></div>
+          <div class="frow"><label>본인 진술 직력(년)</label><input id="tl-stated" type="number" placeholder="26"></div>
+          <div class="frow"><label>발병(진단) 시점</label><input id="tl-onset" placeholder="2024-08"></div>
+        </div>
+        <div class="tl-card">
+          <p class="ct">전산 직력 (4대보험 경력산정내역)</p>
+          <div id="tl-careers"></div>
+          <button class="addrow" id="add-career">+ 직력 행 추가</button>
+        </div>
+        <div class="tl-card">
+          <p class="ct">의료기록</p>
+          <div id="tl-medical"></div>
+          <button class="addrow" id="add-medical">+ 의료기록 행 추가</button>
+        </div>
+        <button class="btn2 full" id="tl-run">사실관계 분석</button>
+      </div>
+      <div class="tl-right">
+        <div id="tl-chart" class="tl-chart"><div class="ph">예시를 불러오거나 직력·의료기록을 입력한 뒤 <b>사실관계 분석</b>을 누르세요.</div></div>
+        <div id="tl-issues"></div>
+      </div>
+    </div>
+  </div>
+</div><!-- /t2 -->
+
+<div id="t3" class="tabpane">
+  <div class="rpt-page">
+    <div class="rpt-head">
+      <div><h1>판정위 상정 보조 보고서</h1><p>1·2단계 분석 결과를 종합합니다. 최종 판정은 업무상질병판정위원회 권한입니다.</p></div>
+      <div style="margin-left:auto;display:flex;gap:8px">
+        <button class="btn2" id="rpt-build" style="margin:0">보고서 생성</button>
+        <button class="btn2" id="rpt-print" style="margin:0;background:#475569">인쇄 / PDF 저장</button>
+      </div>
+    </div>
+    <div class="rpt-body" id="rpt-body">
+      <div class="ph">① 유사 판정서 분석과 ② 사실관계 타임라인을 먼저 실행한 뒤 <b>보고서 생성</b>을 누르세요.<br>두 단계의 결과가 자동으로 종합됩니다.</div>
+    </div>
+  </div>
+</div><!-- /t3 -->
+
+<div id="t4" class="tabpane">
+  <div class="arch-page">
+    <div class="arch-head"><h1>시스템 구조 · 데이터와 AI가 작동하는 방식</h1><p>각 단계가 어떤 공공데이터로, 어떻게 처리되는지 — 그리고 AI 모델 도입 시 어디가 강화되는지를 보여줍니다.</p></div>
+    <div class="arch-body">
+
+      <div class="arch-flow">
+        <div class="afbox data"><div class="aft">공공데이터 (실데이터)</div>
+          <div class="afi">📂 질병판정서 4만여 건<br><span>근로복지공단 API · LIVE 조회</span></div>
+          <div class="afi">📂 산재보험법 시행령 별표3<br><span>업무상질병 인정기준</span></div>
+        </div>
+        <div class="afarrow">→</div>
+        <div class="afbox proc"><div class="aft">현재 처리 (규칙기반 RAG)</div>
+          <div class="afi">🔍 별표3 키워드 매칭 — 일상어를 표준 질병분류로 변환</div>
+          <div class="afi">📊 통계 분석 — 인정 vs 불인정 판정서 빈도 비교</div>
+          <div class="afi">⚙ 규칙 대조 — 직력·의료기록 사실관계 점검</div>
+        </div>
+        <div class="afarrow">→</div>
+        <div class="afbox out"><div class="aft">산출물</div>
+          <div class="afi">유사 판정서 트리</div>
+          <div class="afi">데이터 기반 가이드라인</div>
+          <div class="afi">사실관계 쟁점 + 보고서</div>
+        </div>
+      </div>
+
+      <div class="arch-grid">
+        <div class="acard">
+          <div class="ach">① 일상어 → 분류 변환</div>
+          <div class="now"><b>현재:</b> 별표3 신호 키워드 규칙 매칭. 정형화된 표현은 정확하나 복잡한 자유서술은 한계.</div>
+          <div class="ai"><b>🤖 LLM 도입 시:</b> 민원인이 신청서에 쓴 긴 자유서술(재해 경위)을 그대로 이해해 질병·신체부위·부담요인·노출기간을 한 번에 구조화. 키워드에 없는 표현도 문맥으로 파악.</div>
+        </div>
+        <div class="acard">
+          <div class="ach">② 판정서 본문 추출</div>
+          <div class="now"><b>현재:</b> 본문에서 신체부위·부담요인·결정자료를 키워드로 추출. API가 본문 일부만 제공해 정확도 제한.</div>
+          <div class="ai"><b>🤖 LLM 도입 시:</b> 판정서 전문을 읽고 '인정/불인정을 가른 실제 판단 이유'까지 요약. 단순 빈도가 아니라 "왜 그렇게 판단했는가"의 패턴을 추출.</div>
+        </div>
+        <div class="acard">
+          <div class="ach">③ 사실관계 대조</div>
+          <div class="now"><b>현재:</b> 직력·의료기록의 날짜·기간을 규칙으로 비교해 불일치·공백 점검.</div>
+          <div class="ai"><b>🤖 LLM 도입 시:</b> 진술서·의무기록의 서술형 내용까지 교차 분석해, 단순 날짜 불일치를 넘어 '진술과 기록의 맥락적 모순'까지 포착.</div>
+        </div>
+        <div class="acard">
+          <div class="ach">④ 판정위 보고서</div>
+          <div class="now"><b>현재:</b> 1·2단계 결과를 템플릿으로 종합.</div>
+          <div class="ai"><b>🤖 LLM 도입 시:</b> 사건 맥락에 맞춘 자연스러운 서술형 검토의견 초안을 생성(담당자가 검수·수정).</div>
+        </div>
+        <div class="acard" style="grid-column:1/3">
+          <div class="ach">⑤ 유사 판정서 추천 — 단계적 고도화 로드맵</div>
+          <div class="now"><b>1단계 현재 (키워드·규칙 매칭):</b> 부위·부담요인·직종·노출기간 등 비교 요소의 일치 개수로 유사도를 산출. 투명하고 빠르나, '수부 저림'과 '손목 통증'처럼 표현이 다르면 놓칠 수 있음.</div>
+          <div class="ai" style="background:#eef6ff;border-color:#3b82f6;color:#1e40af"><b>2단계 (임베딩 기반 의미 유사도) — 폐쇄망에서도 가능:</b> 판정서 본문을 벡터로 변환해 '의미가 가까운' 사례를 검색. 동의어·표현 차이를 극복. 한국어 임베딩 모델은 <b>로컬에서 실행</b>되어 개인정보를 외부로 보내지 않으므로, LLM보다 먼저 도입할 수 있는 현실적 다음 단계.</div>
+          <div class="ai"><b>3단계 (LLM 기반):</b> 판정서 전문을 읽고 사실관계 구조·쟁점의 유사성까지 판단. 온프레미스 LLM 환경에서 가능.</div>
+        </div>
+      </div>
+
+      <div class="arch-note">
+        <b>왜 지금은 LLM을 쓰지 않는가</b> — 산재 자료는 민감한 개인정보이고 공단은 폐쇄망 환경이라, 외부 LLM API로 개인정보를 전송할 수 없습니다. 또한 판정 결과를 학습시키면 판정위 권한을 침범할 위험이 있습니다. 따라서 현재는 <b>학습 없는 규칙기반 RAG</b>로 구현했으며, 향후 공단 내부에 <b>온프레미스(자체 서버) LLM</b>이 도입되면 위 4개 지점에서 정확도와 활용성이 크게 향상될 수 있습니다. 핵심 원칙(AI는 판정하지 않는다)은 LLM 도입 후에도 동일하게 유지됩니다.
+      </div>
+
+    </div>
+  </div>
+</div><!-- /t4 -->
+
+<div id="t5" class="tabpane">
+  <div class="guide-page">
+    <div class="guide-head"><h1>사용 안내</h1><p>각 기능의 사용법과, 현재 데모로 동작하는 부분을 정리했습니다. 담당자·팀원이 먼저 읽어주세요.</p></div>
+    <div class="guide-body">
+
+      <div class="gnote warn">
+        <b>⚠ 먼저 알아두세요 — 개인정보 주의</b><br>
+        이 도구는 자료 검토를 <b>보조</b>할 뿐이며, 인정·불인정 판정은 하지 않습니다. 또한 <b>② 사실관계 타임라인</b>에 실제 민원인의 직력·의료기록을 입력하면 그 정보가 (외부 배포 환경에서는) 서버로 전송될 수 있습니다. <b>테스트 시에는 실제 개인정보 대신 예시 데이터를 사용</b>해 주세요. 실제 도입 시에는 공단 폐쇄망·온프레미스 환경을 전제로 합니다.
+      </div>
+
+      <div class="gcard">
+        <div class="gch">① 유사 판정서 분석</div>
+        <p class="gp"><b>무엇을 하나요?</b> 민원인의 상병을 표준 질병분류로 변환하고, 같은 조건의 실제 판정서(공공데이터)를 찾아 인정/불인정 분포를 트리로 보여줍니다. 가장 유사한 판정서 3건과, 인정·불인정을 가른 핵심 자료를 데이터로 제시합니다.</p>
+        <p class="gp"><b>사용법</b></p>
+        <ul class="gul">
+          <li><b>A 일상어로 시작:</b> 민원인 진술을 입력 → "분류어로 변환 · 사전 예측 기록" → 자문위 결정문을 붙여넣어 대조.</li>
+          <li><b>B 분류 선택으로 시작:</b> 질병구분·직종을 직접 선택하고 신체부위·부담요인 필터 후 "판정서 트리 생성".</li>
+          <li>트리의 판정서를 클릭하면 우측에 상세·가이드라인이, 본문 보기 버튼으로 원문 일부를 확인할 수 있습니다.</li>
+        </ul>
+        <div class="greal">✅ <b>실제 데이터:</b> 트리·유사사례·가이드라인은 근로복지공단 질병판정서 API에서 <b>실시간 조회</b>합니다(상단 초록 배너의 응답코드·조회건수가 증거). SERVICE_KEY 없이 실행하면 데모(샘플)로 동작합니다.</div>
+      </div>
+
+      <div class="gcard">
+        <div class="gch">② 사실관계 타임라인</div>
+        <p class="gp"><b>무엇을 하나요?</b> 직력·의료기록을 한 시간축에 올려 직력 불일치·발병시점 재직지·노출기간 등 쟁점을 자동 점검합니다.</p>
+        <p class="gp"><b>사용법</b></p>
+        <ul class="gul">
+          <li><b>판정서에서 실제 케이스 불러오기:</b> 질병구분 선택 → 판정서 본문에서 직력이 추출된 실제 사건을 골라 타임라인 생성.</li>
+          <li><b>직접 입력:</b> 기본정보·직력·의료기록 행을 추가해 입력 후 "사실관계 분석".</li>
+          <li><b>데모 예시:</b> 26년 용접공(울산) 시나리오를 불러옵니다.</li>
+        </ul>
+        <div class="gdemo">📌 <b>데모/한계 안내:</b> 개인의 4대보험 직력·의료기록 <b>원본은 공공데이터에 없습니다</b>(개인정보). 따라서 "판정서에서 불러오기"는 판정서 <b>본문에 서술된 범위</b>만 복원하며, 본문이 짧으면 일부만 추출됩니다. 실제 운영 시에는 담당자가 보유한 자료(엑셀 등)를 입력하는 방식이 됩니다.</div>
+      </div>
+
+      <div class="gcard">
+        <div class="gch">③ 판정위 보고서</div>
+        <p class="gp"><b>무엇을 하나요?</b> ①②의 분석 결과를 상정용 보고서 한 장으로 종합하고, 인쇄/PDF로 저장합니다.</p>
+        <p class="gp"><b>사용법:</b> ①에서 트리 생성, ②에서 타임라인 분석을 먼저 한 뒤 ③에서 "보고서 생성" → "인쇄/PDF 저장".</p>
+        <div class="gdemo">📌 <b>주의:</b> ①②를 실행하지 않으면 보고서에 내용이 채워지지 않습니다. 두 단계를 먼저 진행해 주세요.</div>
+      </div>
+
+      <div class="gcard">
+        <div class="gch">⚙ 시스템 구조</div>
+        <p class="gp">데이터 출처, 현재 처리 방식(규칙기반 RAG), 그리고 AI 모델 도입 시 강화되는 지점을 설명합니다. "왜 지금 LLM을 쓰지 않는가", "임베딩·LLM 고도화 로드맵"을 함께 담았습니다.</p>
+      </div>
+
+      <div class="gnote">
+        <b>현재 데모로 동작하는 부분 요약</b>
+        <ul class="gul">
+          <li><b>실제 라이브:</b> 질병판정서 조회, 유사사례 추천, 가이드라인 통계, 판정서 본문에서 케이스 추출 — 모두 공공데이터 기반(SERVICE_KEY 필요).</li>
+          <li><b>데모/예시:</b> 26년 용접공 타임라인 시나리오, 개인 의료기록 상세 — 개인정보 제약으로 예시 데이터 사용.</li>
+          <li><b>발전 방향:</b> 일상어·본문 이해, 의미기반 유사도(임베딩), 검토의견 초안 — 온프레미스 LLM/임베딩 도입 시 강화(시스템 구조 탭 참조).</li>
+        </ul>
+      </div>
+
+    </div>
+  </div>
+</div><!-- /t5 -->
+<div class="modal" id="docmodal">
+  <div class="modal-box">
+    <div class="modal-head"><h3 id="doc-title">판정서</h3><button class="modal-close" onclick="document.getElementById('docmodal').style.display='none'">✕</button></div>
+    <div class="modal-body" id="doc-body"></div>
+  </div>
+</div>
+<script>
+let PARTS=["허리","목","어깨","무릎","손/손목","팔꿈치"];
+let BURDENS=["중량물","반복동작","진동","부적절자세","장시간"];
+let FILTERS={}, DEFAULT_FILTER={axis1_label:"직종",axis1:[],axis2_label:"부담요인",axis2:["중량물","반복동작","장시간"]};
+const EXAMPLES=["용접 일을 26년 했는데 기침이 멈추지 않고 숨이 차다",
+ "허리가 아프고 무거운 걸 많이 드는 일을 오래 했다",
+ "어깨가 안 올라가고 팔을 반복해서 쓰는 작업을 했다",
+ "손이 저리고 진동공구를 오래 썼다",
+ "목이 아프고 고개 숙이는 작업을 계속했다"];
+const DZKB={"근골격계질환(척추질환 제외)":["허리","목","어깨","무릎","손","저린","무거운","중량","반복","진동","삐끗","결림","통증"],
+ "근골격계질환 (척추질환)":["허리","요추","척추","디스크","추간판"],
+ "호흡기질환(천식 포함)":["숨","기침","호흡","천식","가래","먼지","분진","용접","흄","폐"],
+ "난청":["귀","안 들","난청","이명","소음","시끄"],
+ "뇌혈관질환":["쓰러","뇌출혈","뇌경색","마비","두통"],
+ "심장질환":["가슴","심장","심근","두근"]};
+const DZREF={"근골격계질환(척추질환 제외)":"별표3 제2호","근골격계질환 (척추질환)":"별표3 제2호",
+ "호흡기질환(천식 포함)":"별표3 제3·10호","난청":"별표3 제7호 차목","뇌혈관질환":"별표3 제1호","심장질환":"별표3 제1호"};
+let SEALED=null, RES=null, TL=null, selParts=new Set(), selBurdens=new Set();
+
+const gv=id=>{const e=document.getElementById(id);return e?e.value:"";};
+function predictLocal(text){const r=[];for(const dz in DZKB){const h=DZKB[dz].filter(s=>text.includes(s));if(h.length)r.push({disease:dz,ref:DZREF[dz]||"별표3",confidence:Math.min(1,+(h.length/3).toFixed(2)),matched:h});}return r.sort((a,b)=>b.confidence-a.confidence);}
+
+async function doPredict(){const text=gv('s-text').trim();if(!text){alert('일상어를 입력하거나 예시 채우기를 누르세요');return;}
+ let res;try{const r=await fetch('/api/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({case_id:'C',case_text:text})});if(!r.ok)throw 0;res=await r.json();if(res.error)throw 0;}catch(e){res={seal_hash:'L'+Math.random().toString(16).slice(2,8),predictions:predictLocal(text)};}
+ SEALED=res;const p=res.predictions||[];
+ document.getElementById('seal-box').innerHTML='<div class="seal"><div style="color:#6ee7b7;font-size:10px;margin-bottom:5px">📌 사전 예측 기록됨 · 자문위 판단 전 · ID '+res.seal_hash+'</div>'+(p.length?p.map((x,i)=>'<div style="color:#fff;margin-bottom:2px">'+(i===0?'\u25b6 ':'\u00b7 ')+x.disease+' <span style="color:#9aa3ac">('+x.confidence+')</span></div>').join(''):'<span style="color:#9aa3ac">매칭 분류 없음</span>')+'</div>';
+ document.getElementById('adv-box').style.display='block';
+ // 1순위를 질병구분 드롭다운에 자동 반영 (A→B 연결)
+ if(p.length){const sel=document.getElementById('i-kindc');if([...sel.options].some(o=>o.value===(p[0].kindc||p[0].disease))){sel.value=(p[0].kindc||p[0].disease);}}
+}
+// 결정문 텍스트에서 별표3 질병분류를 인식
+function detectKindc(text){
+  if(!text)return null;
+  const list=window.__KINDC||[];
+  // 1) 분류명이 그대로 포함된 경우
+  for(const k of list){if(text.includes(k))return k;}
+  // 2) 핵심 키워드로 매칭
+  const kw=[['천식','호흡기질환(천식 포함)'],['폐','호흡기질환(천식 포함)'],['호흡','호흡기질환(천식 포함)'],
+    ['난청','난청'],['소음','난청'],['진폐','진폐'],['석면','석면폐증'],
+    ['허리','근골격계질환(척추질환 제외)'],['어깨','근골격계질환(척추질환 제외)'],['무릎','근골격계질환(척추질환 제외)'],['수근','근골격계질환(척추질환 제외)'],['근골격','근골격계질환(척추질환 제외)'],
+    ['척추','근골격계질환 (척추질환)'],['추간판','근골격계질환 (척추질환)'],
+    ['뇌','뇌혈관질환'],['심장','심장질환'],['우울','정신질환'],['적응장애','정신질환'],['외상후','정신질환'],
+    ['암','악성신생물(직업성 암 포함)'],['신생물','악성신생물(직업성 암 포함)'],['피부','피부질환']];
+  for(const [k,v] of kw){if(text.includes(k))return v;}
+  return null;
+}
+async function doCompare(){
+  const txt=gv('s-adv-text');if(!txt||!SEALED)return;
+  const adv=detectKindc(txt);
+  const cmp=document.getElementById('cmp-box');
+  if(!adv){cmp.innerHTML='<div class="seal" style="border-color:#fbbf24"><div style="color:#fbbf24;font-size:10.5px">결정문에서 질병분류를 인식하지 못했습니다. 질병명(예: 천식, 난청, 추간판탈출 등)이 포함되도록 입력해 주세요.</div></div>';return;}
+  let res;try{const r=await fetch('/api/compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sealed:SEALED,advisory:adv})});if(!r.ok)throw 0;res=await r.json();}catch(e){const preds=(SEALED.predictions||[]).map(p=>p.kindc||p.disease);res={verdict:adv===preds[0]?'일치':(preds.includes(adv)?'후보내_일치':'불일치'),ai_top:preds[0],advisory:adv};}
+  const ok=res.verdict==='일치',color=ok?'#34d399':res.verdict==='불일치'?'#f87171':'#fbbf24';
+  cmp.innerHTML='<div class="seal" style="border-color:'+color+'"><div style="color:'+color+';font-weight:700;font-size:11px">'+(ok?'\u2705 일치 — 근거 기록':res.verdict==='불일치'?'\u274c 불일치 — 재조사 쟁점':'\u26a0 후보 내 일치')+'</div>'+
+    '<div style="color:#cdd3da;font-size:10.5px;margin-top:4px">결정문 인식 분류: <b style="color:#fff">'+adv+'</b><br>사전 예측(AI): '+(res.ai_top||'—')+'</div>'+
+    (res.verdict==='불일치'?'<div style="color:#fca5a5;font-size:10px;margin-top:4px">→ AI 예측과 자문위 분류가 달라 재조사 검토 대상으로 표시됩니다.</div>':'')+'</div>';
+  const sel=document.getElementById('i-kindc');if([...sel.options].some(o=>o.value===adv))sel.value=adv;
+}
+
+function chipRow(host,arr,set){const h=document.getElementById(host);h.innerHTML='';arr.forEach(x=>{const b=document.createElement('div');b.className='chip-btn';b.textContent=x;b.onclick=()=>{if(set.has(x)){set.delete(x);b.classList.remove('on');}else{set.add(x);b.classList.add('on');}};h.appendChild(b);});}
+
+async function loadOptions(){
+ let o;try{const r=await fetch('/api/options');o=await r.json();}catch(e){o={kindc:Object.keys(DZKB),kinda:["인정","일부인정","변경인정","불인정","보류","판정위이송"],kindb:[]};}
+ const kc=document.getElementById('i-kindc');kc.innerHTML='';o.kindc.forEach(v=>{const op=document.createElement('option');op.value=v;op.textContent=v;kc.appendChild(op);});
+ const kb=document.getElementById('i-kindb');(o.kindb||[]).forEach(v=>{const op=document.createElement('option');op.value=v;op.textContent=v;kb.appendChild(op);});
+ window.__KINDC=o.kindc||[];
+ FILTERS=o.filters||{};DEFAULT_FILTER=o.default_filter||DEFAULT_FILTER;
+ kc.onchange=()=>updateFilters(kc.value);
+ updateFilters(kc.value);
+}
+function updateFilters(kindc){
+ const f=FILTERS[kindc]||DEFAULT_FILTER;
+ PARTS=f.axis1||[];BURDENS=f.axis2||[];
+ selParts.clear();selBurdens.clear();
+ document.getElementById('lab-axis1').textContent=f.axis1_label||'분류';
+ document.getElementById('lab-axis2').textContent=f.axis2_label||'요인';
+ chipRow('parts',PARTS,selParts);chipRow('burdens',BURDENS,selBurdens);
+}
+
+async function run(){
+ const kindc=gv('i-kindc');
+ const case_={disease_group:kindc,kindc:kindc,sangbyeong:gv('s-text')||kindc,
+   body_part:[...selParts].join(','),job_type:gv('i-kindb'),
+   burden:[...selBurdens],work_history:[]};
+ const b=document.getElementById('gen');b.disabled=true;b.textContent='판정서 조회 중…';
+ let res;try{const r=await fetch('/api/guideline',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(case_)});if(!r.ok)throw 0;res=await r.json();if(res.error)throw new Error(res.error);}catch(e){document.getElementById('cw').innerHTML='<div class="ph">조회 실패: '+(e.message||e)+'<br>서버(app.py)가 실행 중인지, SERVICE_KEY가 설정됐는지 확인하세요.</div>';b.disabled=false;b.textContent='판정서 트리 생성';return;}
+ RES=res;setMode(res.mode);renderProv(res);drawTree(res.tree);renderGuide(res);renderSimilar(res.similar);
+ const onp=(res.tree.children||[]).find(c=>c.onpath)||res.tree.children[0];if(onp)selectFactor(onp);
+ b.disabled=false;b.textContent='판정서 트리 재생성';
+}
+
+// ── 트리 SVG ──
+const NS="http://www.w3.org/2000/svg";
+function el(t,a,x){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(x!=null)e.textContent=x;return e;}
+const RW=210,FW=200,LW=150,LH=30,FH=46,VGAP=9,COLX=[15,265,500];
+function layout(tree){const rows=[];const root=Object.assign({},tree,{depth:0});rows.push(root);let cur=12;
+ (tree.children||[]).forEach(f=>{const open=!collapsed[f.id];const lc=open?f.children.length:0;const bh=Math.max(FH,lc*(LH+VGAP)-VGAP);f.y=cur+bh/2;f.depth=1;rows.push(f);
+  if(open){let ly=cur+(bh-(lc*(LH+VGAP)-VGAP))/2;f.children.forEach(l=>{l.y=ly+LH/2;l.depth=2;rows.push(l);ly+=LH+VGAP;});}cur+=bh+14;});
+ const H=Math.max(cur+12,240);root.y=H/2;return{rows,H};}
+const collapsed={};
+let zoom=1, baseW=0, baseH=0;
+function edge(x1,y1,x2,y2,op){const mx=(x1+x2)/2;return el('path',{class:'edge'+(op?' onpath':''),d:"M"+x1+","+y1+" C"+mx+","+y1+" "+mx+","+y2+" "+x2+","+y2});}
+function drawTree(tree){const cw=document.getElementById('cw');cw.innerHTML='';document.getElementById('zoomctl').style.display='none';if(!tree.children||!tree.children.length){cw.innerHTML='<div class="ph">해당 조건의 판정서를 찾지 못했습니다.<br>질병구분을 바꾸거나 부위·부담요인 선택을 줄여보세요.</div>';return;}
+ const L=layout(tree),W=COLX[2]+LW+20;baseW=W;baseH=L.H;
+ const svg=el('svg',{id:'tree',viewBox:"0 0 "+W+" "+L.H,width:W*zoom,height:L.H*zoom});
+ const root=L.rows.find(r=>r.depth===0);
+ L.rows.filter(r=>r.depth===1).forEach(f=>{svg.appendChild(edge(COLX[0]+RW,root.y,COLX[1],f.y,f.onpath));if(!collapsed[f.id])f.children.forEach(l=>svg.appendChild(edge(COLX[1]+FW,f.y,COLX[2],l.y,f.onpath)));});
+ L.rows.forEach(r=>{if(r.depth===0)svg.appendChild(rootN(r));else if(r.depth===1)svg.appendChild(facN(r));else svg.appendChild(leafN(r));});
+ cw.appendChild(svg);document.getElementById('zoomctl').style.display='flex';}
+function applyZoom(){const s=document.getElementById('tree');if(s){s.setAttribute('width',baseW*zoom);s.setAttribute('height',baseH*zoom);}}
+function rootN(n){const g=el('g',{class:'node'}),x=COLX[0],y=n.y-23;g.appendChild(el('rect',{x,y,width:RW,height:46,rx:9,fill:'#15181d'}));
+ g.appendChild(el('text',{x:x+14,y:n.y-5,fill:'#fff','font-size':12,'font-weight':700},(n.label||'').slice(0,16)));
+ g.appendChild(el('text',{x:x+14,y:n.y+12,fill:'#9aa3ac','font-size':10},'판정서 '+n.count+'건 · 인정률 '+n.accept_rate+'%'));return g;}
+function facN(n){const g=el('g',{class:'node clickable'}),x=COLX[1],y=n.y-FH/2;
+ g.appendChild(el('rect',{x,y,width:FW,height:FH,rx:9,fill:n.onpath?'var(--soft)':'#fff',stroke:n.onpath?'var(--path)':'var(--line2)','stroke-width':n.onpath?2.2:1.5}));
+ const open=!collapsed[n.id];
+ g.appendChild(el('text',{x:x+13,y:n.y-7,fill:'var(--ink)','font-size':12.5,'font-weight':700},(open?'\u25be ':'\u25b8 ')+n.label));
+ g.appendChild(el('text',{x:x+13,y:n.y+9,fill:'var(--ink3)','font-size':9.5},n.count+'건 · 인정'+n.accept+'/불인정'+n.reject+'/보류'+n.hold));
+ if(n.onpath)g.appendChild(el('text',{x:x+FW-44,y:n.y+9,fill:'var(--path)','font-size':9,'font-weight':700},'현재경로'));
+ g.onclick=()=>{collapsed[n.id]=!collapsed[n.id];drawTree(RES.tree);selectFactor(n);};return g;}
+function leafN(n){const g=el('g',{class:'node clickable'}),x=COLX[2],y=n.y-LH/2;
+ const col=n.result==='인정'?['var(--ok-bg)','var(--ok-line)','var(--ok)']:n.result==='불인정'?['var(--no-bg)','var(--no-line)','var(--no)']:['var(--hold-bg)','var(--hold-line)','var(--hold)'];
+ g.appendChild(el('rect',{x,y,width:LW,height:LH,rx:7,fill:col[0],stroke:col[1]}));
+ g.appendChild(el('text',{x:x+10,y:n.y-2,fill:'var(--ink)','font-size':10,'font-weight':600,'font-family':'IBM Plex Mono'},(n.label||'').slice(0,13)));
+ g.appendChild(el('text',{x:x+10,y:n.y+10,fill:col[2],'font-size':9,'font-weight':700},n.verdict||n.result));
+ g.onclick=()=>selectLeaf(n);return g;}
+
+function selectFactor(n){document.getElementById('det-title').textContent='신체부위 · '+n.label;
+ document.getElementById('det').innerHTML='<div class="stat"><div class="s ok"><div class="n">'+n.accept+'</div><div class="l">인정</div></div><div class="s no"><div class="n">'+n.reject+'</div><div class="l">불인정</div></div><div class="s hold"><div class="n">'+n.hold+'</div><div class="l">보류/이송</div></div></div><div class="kv"><span class="k">판정서 수</span><span class="v">'+n.count+'건</span></div><div class="kv"><span class="k">인정률</span><span class="v">'+n.accept_rate+'%</span></div><div class="kv"><span class="k">현재 케이스</span><span class="v">'+(n.onpath?'이 부위':'아님')+'</span></div><p style="font-size:11.5px;color:var(--ink3);margin-top:8px">판정서(잎)를 클릭하면 직종·부담요인·결정자료가 표시됩니다.</p>';}
+function selectLeaf(n){document.getElementById('det-title').textContent='판정서 · '+n.label;
+ const cls=n.result==='인정'?'ok':n.result==='불인정'?'no':'hold';
+ document.getElementById('det').innerHTML='<div class="kv"><span class="k">심의결과</span><span class="v"><span class="badge '+cls+'">'+(n.verdict||n.result)+'</span></span></div><div class="kv"><span class="k">직종</span><span class="v" style="font-size:11px">'+(n.job||'—')+'</span></div>'+(n.industry?'<div class="kv"><span class="k">업종</span><span class="v" style="font-size:11px">'+n.industry+'</span></div>':'')+(n.years!=null?'<div class="kv"><span class="k">근무기간</span><span class="v">'+n.years+'년</span></div>':'')+'<div class="gt">신체부위</div>'+((n.body_parts||[]).map(x=>'<span class="chip">'+x+'</span>').join('')||'—')+'<div class="gt">부담요인</div>'+((n.burden||[]).map(x=>'<span class="chip">'+x+'</span>').join('')||'—')+'<div class="gt">결정 자료</div>'+((n.docs||[]).map(x=>'<span class="chip gray">'+x+'</span>').join('')||'—')+(n.sint?'<div class="gt">신청내용 발췌</div><div class="excerpt">'+n.sint+'</div>':'')+'<div class="gt">원본 판정서</div><button class="docbtn" onclick=\'showDoc('+JSON.stringify(JSON.stringify({no:n.label,v:n.verdict||n.result,nc:n.noncontent||n.excerpt||""}))+')\'>📄 이 판정서 내용 보기</button>';}
+function showDoc(s){const d=JSON.parse(s);document.getElementById('doc-title').textContent='판정서 '+d.no+' ('+d.v+')';
+ document.getElementById('doc-body').innerHTML='<div style="background:var(--hold-bg);border:1px solid var(--hold-line);border-radius:6px;padding:9px 11px;font-size:11px;color:var(--hold);margin-bottom:12px">※ 공공데이터 API는 판정서 본문 일부만 제공합니다. 전문은 아래 원문 링크에서 조회하세요.</div><div style="white-space:pre-wrap">'+(d.nc||'(본문 미제공)')+'</div><div style="margin-top:14px"><a href="https://www.data.go.kr/data/15110836/openapi.do" target="_blank" style="display:inline-block;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:8px 13px;text-decoration:none">원문 조회 (공공데이터포털) ↗</a></div>';
+ document.getElementById('docmodal').style.display='flex';}
+function renderSimilar(sim){
+  const sec=document.getElementById('sim-sec'),box=document.getElementById('sim-box');
+  if(!sim||!sim.length){sec.style.display='none';return;}
+  sec.style.display='block';
+  box.innerHTML='<div style="font-size:11px;color:var(--ink3);margin-bottom:8px">현재 사건과 가장 가까운 과거 판정서입니다. 유사 근거와 당시 결과를 참고하세요.</div>'+
+   sim.map((s,i)=>{
+    const cls=s.result==='인정'?'ok':s.result==='불인정'?'no':'hold';
+    return '<div class="simcard">'+
+      '<div class="simhead"><span class="rank">'+(i+1)+'</span><span class="badge '+cls+'">'+(s.verdict||s.result)+'</span>'+
+      '<span class="simpct">유사도 '+s.match_pct+'%</span></div>'+
+      '<div style="font-size:10px;color:var(--ink3);margin-bottom:4px">비교 요소 '+(s.axes_total||0)+'개 중 '+(s.matched||0)+'개 일치</div>'+
+      '<div class="simno">'+s.case_no+' · '+(s.job||'')+(s.years!=null?' · '+s.years+'년':'')+'</div>'+
+      '<div class="simwhy">'+(s.reasons||[]).map(r=>'<span class="rtag">'+r+'</span>').join('')+'</div>'+
+      '<button class="docbtn" style="margin-top:7px;font-size:11px;padding:5px 10px" onclick=\'showDoc('+JSON.stringify(JSON.stringify({no:s.case_no,v:s.verdict||s.result,nc:s.noncontent||''}))+')\'>📄 이 판정서 내용 보기</button>'+
+      '</div>';
+   }).join('');
+}
+function renderGuide(res){const g=res.guideline;
+ const cpHtml=g.cp.map(c=>{const parts=c.split('▶');const head=parts[0].trim();const tip=parts[1]?parts[1].trim():'';return '<li>'+head+(tip?'<div style="margin-top:5px;padding:6px 9px;background:var(--soft);border-radius:6px;font-size:11.5px;color:var(--accent)"><b>▶</b> '+tip+'</div>':'')+'</li>';}).join('');
+ document.getElementById('guide').innerHTML='<p class="excerpt">'+g.lead+'</p><div class="stat"><div class="s ok"><div class="n">'+g.acc+'</div><div class="l">인정</div></div><div class="s no"><div class="n">'+g.rej+'</div><div class="l">불인정</div></div><div class="s hold"><div class="n">'+g.hold+'</div><div class="l">보류/이송</div></div></div><div class="gt">보완 체크포인트 (인정 vs 불인정 비교 기반)</div><ul class="glist">'+cpHtml+'</ul>'+(g.keyDocs&&g.keyDocs.length?'<div class="gt">인정 판정서 빈출 자료</div>'+g.keyDocs.slice(0,6).map(d=>'<span class="chip gray">'+d+'</span>').join(''):'');}
+function renderProv(res){
+  const e=res.evidence;
+  let ev='';
+  if(e){
+    const ok=(e.result_code==='00'||e.result_code===''||!e.result_code);
+    ev='<div style="background:#0f2e29;border:1px solid var(--accent2);border-radius:7px;padding:9px 11px;margin-bottom:9px;color:#d7f0ec">'+
+       '<div style="font-size:11px;font-weight:700;color:#6ee7b7;margin-bottom:4px">● 실시간 공공데이터 조회 완료'+(e.result_code?' · 응답코드 '+e.result_code:'')+'</div>'+
+       '<div style="font-size:10.5px;line-height:1.6;color:#aab8b4">근로복지공단 질병판정서 API · <span class="mono">'+(e.op||'')+'</span><br>'+
+       '모집단 <b style="color:#fff">'+(e.population||'?')+'건</b> 중 <b style="color:#fff">'+(e.fetched||0)+'건</b> 조회 → <b style="color:#fff">'+(e.analyzed||0)+'건</b> 분석'+
+       (e.fetched_at?'<br>조회시각 '+e.fetched_at:'')+'</div></div>';
+  }
+  const fn=res.filter_note?'<div style="background:var(--soft);border:1px solid var(--accent2);border-radius:6px;padding:7px 10px;font-size:11px;color:var(--accent);margin-bottom:8px">\u25b6 '+res.filter_note+'</div>':'';
+  document.getElementById('prov').innerHTML=ev+fn+(res.provenance||[]).map(p=>'<div><b>'+p.dataset+'</b> · '+p.count+'건<br><span class="mono" style="font-size:10px">'+p.op+' · '+p.filter+'</span> · <a href="'+p.url+'" target="_blank">출처</a></div>').join('<div style="height:6px"></div>');
+}
+function setMode(m){const d=document.getElementById('mdot'),t=document.getElementById('mtext');if(m&&m.indexOf('LIVE')>=0){d.className='mdot live';t.textContent=m;}else{d.className='mdot demo';t.textContent=m||'demo';}}
+
+// init
+let exi=0;document.getElementById('ex-btn').onclick=()=>{document.getElementById('s-text').value=EXAMPLES[exi%EXAMPLES.length];exi++;};
+document.getElementById('predict').onclick=doPredict;
+document.getElementById('compare').onclick=doCompare;
+document.getElementById('gen').onclick=run;
+// 트리 확대/축소
+document.getElementById('zin').onclick=()=>{zoom=Math.min(3,zoom+0.2);applyZoom();};
+document.getElementById('zout').onclick=()=>{zoom=Math.max(0.4,zoom-0.2);applyZoom();};
+document.getElementById('zfit').onclick=()=>{zoom=1;applyZoom();};
+document.getElementById('cw').addEventListener('wheel',e=>{if(e.ctrlKey||e.metaKey){e.preventDefault();zoom=Math.max(0.4,Math.min(3,zoom+(e.deltaY<0?0.1:-0.1)));applyZoom();}},{passive:false});
+loadOptions();
+// ── 탭 전환 ──
+document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
+  document.querySelectorAll('.tab').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.tabpane').forEach(x=>x.classList.remove('active'));
+  t.classList.add('active');document.getElementById(t.dataset.tab).classList.add('active');
+});
+// ── 타임라인 입력 행 ──
+function careerRow(c={}){const d=document.createElement('div');d.className='crow';
+  d.innerHTML='<button class="del">✕</button>'+
+   '<input class="c-start" placeholder="시작 2001-02" value="'+(c.start||'')+'">'+
+   '<input class="c-end" placeholder="종료 2013-10" value="'+(c.end||'')+'">'+
+   '<input class="c-site full2" placeholder="사업장" value="'+(c.site||'')+'">'+
+   '<input class="c-job" placeholder="직종" value="'+(c.job||'')+'">'+
+   '<input class="c-insure" placeholder="고용/산재보험" value="'+(c.insure||'')+'">'+
+   '<label class="haz"><input type="checkbox" class="c-haz" '+(c.hazard?'checked':'')+'> 신체부담·유해 직종</label>';
+  d.querySelector('.del').onclick=()=>d.remove();
+  document.getElementById('tl-careers').appendChild(d);}
+function medRow(m={}){const d=document.createElement('div');d.className='crow';
+  d.innerHTML='<button class="del">✕</button>'+
+   '<input class="m-date" placeholder="2020-11" value="'+(m.date||'')+'">'+
+   '<input class="m-hosp" placeholder="병원" value="'+(m.hospital||'')+'">'+
+   '<input class="m-dx full2" placeholder="진단/소견" value="'+(m.dx||'')+'">'+
+   '<input class="m-note full2" placeholder="비고" value="'+(m.note||'')+'">';
+  d.querySelector('.del').onclick=()=>d.remove();
+  document.getElementById('tl-medical').appendChild(d);}
+document.getElementById('add-career').onclick=()=>careerRow();
+document.getElementById('add-medical').onclick=()=>medRow();
+
+function collectTL(){
+  const careers=[...document.querySelectorAll('#tl-careers .crow')].map(r=>({
+    start:r.querySelector('.c-start').value,end:r.querySelector('.c-end').value,
+    site:r.querySelector('.c-site').value,job:r.querySelector('.c-job').value,
+    insure:r.querySelector('.c-insure').value,hazard:r.querySelector('.c-haz').checked}));
+  const medical=[...document.querySelectorAll('#tl-medical .crow')].map(r=>({
+    date:r.querySelector('.m-date').value,hospital:r.querySelector('.m-hosp').value,
+    dx:r.querySelector('.m-dx').value,note:r.querySelector('.m-note').value}));
+  return {disease:gv('tl-disease'),stated_years:+gv('tl-stated')||null,onset:gv('tl-onset'),careers,medical};
+}
+async function loadDemo(){
+  let d;try{const r=await fetch('/api/timeline_demo');d=await r.json();}catch(e){return;}
+  const p=d.payload;
+  document.getElementById('tl-disease').value=p.disease||'';
+  document.getElementById('tl-stated').value=p.stated_years||'';
+  document.getElementById('tl-onset').value=p.onset||'';
+  document.getElementById('tl-careers').innerHTML='';document.getElementById('tl-medical').innerHTML='';
+  (p.careers||[]).forEach(careerRow);(p.medical||[]).forEach(medRow);
+  renderTL(d.analysis);
+}
+async function runTL(){
+  const payload=collectTL();
+  let res;try{const r=await fetch('/api/timeline',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)});res=await r.json();}catch(e){return;}
+  renderTL(res);
+}
+function renderTL(a){
+  TL=a;
+  const s=a.summary;
+  const evs=(a.events||[]);
+  const careerEvs=evs.filter(e=>e.kind==='career');
+  const medEvs=evs.filter(e=>e.kind==='medical');
+  const onsetEvs=evs.filter(e=>e.kind==='onset');
+  // 연도 범위
+  const yrs=[];
+  [...careerEvs].forEach(e=>{const m=(e.start||'').match(/(\d{4})/),m2=(e.end||'').match(/(\d{4})/);if(m)yrs.push(+m[1]);if(m2)yrs.push(+m2[1]);});
+  [...medEvs,...onsetEvs].forEach(e=>{const m=(e.date||'').match(/(\d{4})/);if(m)yrs.push(+m[1]);});
+  if(!yrs.length){document.getElementById('tl-chart').innerHTML='<div class="ph">직력·의료기록을 입력한 뒤 분석을 누르세요.</div>';document.getElementById('tl-issues').innerHTML='';return;}
+  let minY=Math.min(...yrs),maxY=Math.max(...yrs)+1;const span=Math.max(maxY-minY,1);
+  const X=v=>((v-minY)/span*100);
+  const yearOf=str=>{const m=(str||'').match(/(\d{4})(?:[-.](\d{1,2}))?/);if(!m)return null;return +m[1]+(m[2]?(+m[2]-1)/12:0);};
+
+  // 요약 카드
+  let html='<div class="sumbar"><div class="sb"><div class="n">'+(s.official_years||0)+'</div><div class="l">4대보험 직력(년)</div></div>'+
+    '<div class="sb"><div class="n">'+(s.hazard_years||0)+'</div><div class="l">유해업무 노출(년)</div></div>'+
+    '<div class="sb"><div class="n">'+(s.stated_years||'—')+'</div><div class="l">본인 진술(년)</div></div></div>';
+
+  // 범례
+  html+='<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink2);margin-bottom:10px">'+
+    '<span><span style="display:inline-block;width:14px;height:10px;background:var(--accent2);border-radius:2px;vertical-align:middle"></span> 유해·부담 직종</span>'+
+    '<span><span style="display:inline-block;width:14px;height:10px;background:var(--line2);border-radius:2px;vertical-align:middle"></span> 일반 직종</span>'+
+    '<span><span style="display:inline-block;width:10px;height:10px;background:var(--no);border-radius:50%;vertical-align:middle"></span> 의료기록</span>'+
+    '<span><span style="display:inline-block;width:10px;height:10px;background:var(--hold);border-radius:50%;vertical-align:middle"></span> 발병(진단)</span></div>';
+
+  // 연도 눈금
+  const ticks=[];const step=span>20?5:(span>10?2:1);
+  for(let y=Math.ceil(minY);y<=maxY;y+=step)ticks.push(y);
+  html+='<div style="position:relative;height:20px;margin:0 0 2px 0;border-bottom:1px solid var(--line2)">'+
+    ticks.map(y=>'<span style="position:absolute;left:'+X(y)+'%;font-size:10px;color:var(--ink3);font-family:IBM Plex Mono;transform:translateX(-50%)">'+y+'</span>').join('')+'</div>';
+
+  // 직력 막대 (행별)
+  html+='<div style="position:relative;padding-top:6px">';
+  careerEvs.forEach((e,i)=>{
+    const a1=yearOf(e.start),b1=yearOf(e.end);
+    if(a1==null)return;
+    const left=X(a1),width=Math.max((b1!=null?X(b1)-X(a1):2),4);
+    const site=(e.label||'').split('·')[0].trim();
+    html+='<div style="position:relative;height:30px;margin-bottom:4px">'+
+      '<div title="'+e.label+' ('+(e.dur||'')+')" style="position:absolute;left:'+left+'%;width:'+width+'%;top:3px;height:24px;background:'+(e.hazard?'var(--accent2)':'var(--line2)')+';border-radius:5px;display:flex;align-items:center;padding:0 7px;overflow:hidden;white-space:nowrap;color:'+(e.hazard?'#fff':'var(--ink2)')+';font-size:10.5px;font-weight:600">'+site+' <span style="opacity:.8;margin-left:5px;font-weight:400">'+(e.dur||'')+'</span></div></div>';
+  });
+  // 의료/발병 마커 (같은 축 위 세로선 + 점)
+  const markers=[...medEvs.map(e=>({...e,c:'var(--no)',ic:'🏥'})),...onsetEvs.map(e=>({...e,c:'var(--hold)',ic:'⚑'}))];
+  if(markers.length){
+    html+='<div style="position:relative;height:'+(markers.length*22+10)+'px;margin-top:8px;border-top:1px dashed var(--line2);padding-top:8px">';
+    markers.forEach((e,i)=>{const x=X(yearOf(e.date));
+      html+='<div style="position:absolute;left:'+x+'%;top:0;bottom:0;width:1px;background:'+e.c+';opacity:.3"></div>'+
+        '<div style="position:absolute;left:'+x+'%;top:'+(i*22+4)+'px;transform:translateX(-50%);display:flex;align-items:center;gap:5px;white-space:nowrap"><span style="width:9px;height:9px;border-radius:50%;background:'+e.c+';flex:none"></span><span style="font-size:10.5px;color:var(--ink2);background:var(--surface);padding:1px 5px;border-radius:4px;border:1px solid var(--line)">'+e.ic+' '+(e.date||'')+' '+(e.label||'')+'</span></div>';
+    });
+    html+='</div>';
+  }
+  html+='</div>';
+  document.getElementById('tl-chart').innerHTML=html;
+
+  // 쟁점
+  document.getElementById('tl-issues').innerHTML='<div class="gt" style="font-size:13px;margin:4px 0 10px">자동 점검 — 재조사 쟁점 '+(a.issues||[]).length+'건</div>'+
+    (a.issues||[]).map(i=>'<div class="issue '+i.level+'"><div class="it">'+i.type+'</div><div class="tx">'+i.text+'</div><div class="ac">▶ '+i.action+'</div></div>').join('');
+}
+document.getElementById('tl-demo').onclick=loadDemo;
+// 질병구분 드롭다운 채우기(타임라인용)
+(function(){const s=document.getElementById('tl-kindc2');if(!s)return;
+ fetch('/api/options').then(r=>r.json()).then(o=>{(o.kindc||[]).forEach(v=>{const op=document.createElement('option');op.value=v;op.textContent=v;s.appendChild(op);});if([...s.options].some(o=>o.value==='호흡기질환(천식 포함)'))s.value='호흡기질환(천식 포함)';}).catch(()=>{});})();
+// 판정서에서 실제 케이스 불러오기
+let TLCASES=[];
+async function loadTLCases(){
+  const kindc=document.getElementById('tl-kindc2').value;
+  const list=document.getElementById('tl-caselist');
+  list.style.display='block';list.innerHTML='판정서 조회 중…';
+  let d;try{const r=await fetch('/api/timeline_cases',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({kindc})});d=await r.json();}catch(e){list.innerHTML='조회 실패 — 서버·SERVICE_KEY 확인';return;}
+  TLCASES=d.cases||[];
+  if(!TLCASES.length){list.innerHTML='<span style="color:var(--ink3)">이 질병구분에서 직력 정보가 추출된 판정서가 없습니다. 다른 질병구분을 선택하거나 데모 예시를 사용하세요.</span>';return;}
+  list.innerHTML='<b style="color:var(--accent)">'+d.source_count+'건 판정서 중 직력 추출 성공 '+TLCASES.length+'건</b> — 케이스를 선택하면 타임라인이 생성됩니다: '+
+    TLCASES.map((c,i)=>{const r=c.case.source_result||'';const cls=r.includes('인정')&&!r.includes('불')?'#16a34a':r.includes('불인정')?'#dc2626':'#d97706';
+      return '<button class="tlcasebtn" data-i="'+i+'" style="margin:4px 4px 0 0;padding:5px 10px;border:1px solid var(--line2);border-radius:6px;background:#fff;cursor:pointer;font-size:11.5px;font-family:inherit">'+(c.case.source_case||('케이스'+(i+1)))+' <span style="color:'+cls+';font-weight:700">'+r+'</span></button>';}).join('');
+  list.querySelectorAll('.tlcasebtn').forEach(b=>b.onclick=()=>{
+    const c=TLCASES[+b.dataset.i];
+    const p=c.case;
+    document.getElementById('tl-disease').value=p.disease||'';
+    document.getElementById('tl-stated').value=p.stated_years||'';
+    document.getElementById('tl-onset').value=p.onset||'';
+    document.getElementById('tl-careers').innerHTML='';document.getElementById('tl-medical').innerHTML='';
+    (p.careers||[]).forEach(careerRow);(p.medical||[]).forEach(medRow);
+    if(!(p.careers||[]).length)careerRow();if(!(p.medical||[]).length)medRow();
+    renderTL(c.analysis);
+    list.querySelectorAll('.tlcasebtn').forEach(x=>x.style.background='#fff');b.style.background='var(--soft)';
+  });
+}
+document.getElementById('tl-load').onclick=loadTLCases;
+document.getElementById('tl-run').onclick=runTL;
+// ── 3단계: 판정위 보고서 ──
+function buildReport(){
+  const body=document.getElementById('rpt-body');
+  if(!RES&&!TL){body.innerHTML='<div class="ph">① 또는 ② 단계를 먼저 실행해 주세요.</div>';return;}
+  const today=new Date().toISOString().slice(0,10);
+  const dz=(RES&&RES.tree&&RES.tree.label)||(TL&&TL.summary&&'—')||'—';
+  let h='<div class="rpt-doc"><h2>업무상질병 재조사 보조 보고서</h2>'+
+    '<div class="sub">업무상질병판정위원회 상정 전 1차 조사 보조자료 · 작성일 '+today+'</div>';
+
+  // 1. 사건 개요
+  h+='<div class="rsec2"><div class="h">1. 사건 개요</div><table class="rtable">'+
+     '<tr><td class="k">질병구분</td><td>'+dz+'</td></tr>'+
+     (RES?'<tr><td class="k">분석 판정서 수</td><td>'+(RES.tree.count||0)+'건 (인정 '+RES.tree.accept+' · 불인정 '+RES.tree.reject+' · 보류/이송 '+RES.tree.hold+')</td></tr>':'')+
+     (TL?'<tr><td class="k">4대보험 직력</td><td>'+TL.summary.official_years+'년 (유해업무 '+TL.summary.hazard_years+'년) · 본인 진술 '+(TL.summary.stated_years||'—')+'년</td></tr>':'')+
+     '</table></div>';
+
+  // 2. 유사 판정서 분석 (1단계)
+  if(RES){const g=RES.guideline;
+    h+='<div class="rsec2"><div class="h">2. 유사 판정서 분석 (공공데이터 기반)</div>'+
+       '<div class="rstat"><div class="b ok"><div class="n">'+g.acc+'</div><div class="l">인정</div></div>'+
+       '<div class="b no"><div class="n">'+g.rej+'</div><div class="l">불인정</div></div>'+
+       '<div class="b hold"><div class="n">'+g.hold+'</div><div class="l">보류/이송</div></div>'+
+       '<div class="b"><div class="n">'+g.rate+'%</div><div class="l">인정률</div></div></div>'+
+       '<p style="font-size:12px;color:var(--ink2);line-height:1.6;margin:8px 0 0">'+g.lead+'</p></div>';
+    // 3. 검토 포인트
+    h+='<div class="rsec2"><div class="h">3. 데이터 기반 검토 포인트 (인정 vs 불인정 비교)</div><ul class="rlist">'+
+       g.cp.map(c=>'<li>'+c.replace('▶','<br><span style="color:var(--accent)">▶</span>')+'</li>').join('')+'</ul></div>';
+  }
+
+  // 4. 사실관계 쟁점 (2단계)
+  if(TL&&TL.issues&&TL.issues.length){
+    h+='<div class="rsec2"><div class="h">4. 사실관계 쟁점 (직력·의료기록 대조)</div>'+
+       TL.issues.map(i=>'<div class="rissue"><span class="lv '+i.level+'">'+({high:'중점',mid:'주의',info:'참고'}[i.level]||'')+'</span><b>'+i.type+'</b> — '+i.text+'<br><span style="color:var(--accent)">▶ '+i.action+'</span></div>').join('')+'</div>';
+  }
+
+  // 5. 보완 필요 자료 체크리스트 (1·2단계에서 추출한 ▶ 행동지침 모음)
+  const todos=[];
+  if(RES)RES.guideline.cp.forEach(c=>{const p=c.split('▶')[1];if(p)todos.push(p.trim());});
+  if(TL&&TL.issues)TL.issues.forEach(i=>{if(i.action)todos.push(i.action);});
+  if(todos.length){
+    h+='<div class="rsec2"><div class="h">5. 보완 필요 자료 체크리스트</div><ul class="rlist">'+
+       todos.map(t=>'<li>'+t+'</li>').join('')+'</ul></div>';
+  }
+
+  h+='<div class="rfoot">※ 본 보고서는 공공데이터(근로복지공단 질병판정서, 산재보험법 시행령 별표3)를 기반으로 자동 생성된 <b>보조 자료</b>입니다. '+
+     '인정·불인정 판정이 아니며, 최종 판단은 업무상질병판정위원회의 고유 권한입니다. 개인 자료는 외부로 전송되지 않습니다.</div>';
+  h+='</div>';
+  body.innerHTML=h;
+}
+document.getElementById('rpt-build').onclick=buildReport;
+document.getElementById('rpt-print').onclick=()=>window.print();
+careerRow();medRow();  // 초기 빈 행 하나씩
+document.getElementById('docmodal').addEventListener('click',e=>{if(e.target.id==='docmodal')e.currentTarget.style.display='none';});
+fetch('/api/status').then(r=>r.json()).then(d=>setMode(d.mode)).catch(()=>setMode('demo'));
+</script>
