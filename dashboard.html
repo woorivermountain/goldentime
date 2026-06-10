@@ -650,11 +650,16 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   t.classList.add('active');document.getElementById(t.dataset.tab).classList.add('active');
 });
 // ── 타임라인 입력 행 ──
+// 날짜값 보정: date 입력칸은 YYYY-MM-DD 필요. 일이 없으면 01일로.
+function _d(v){if(!v)return '';v=String(v).trim();
+  const m=v.match(/^(\d{4})(?:[-.\/](\d{1,2}))?(?:[-.\/](\d{1,2}))?/);if(!m)return '';
+  const y=m[1],mo=(m[2]||'1').padStart(2,'0'),da=(m[3]||'1').padStart(2,'0');
+  return y+'-'+mo+'-'+da;}
 function careerRow(c={}){const d=document.createElement('div');d.className='crow2';
   d.innerHTML='<button class="del">✕</button>'+
    '<div class="fld" style="grid-column:1/3"><label>사업장명</label><input class="c-site" placeholder="예: 현대중공업" value="'+(c.site||'')+'"></div>'+
-   '<div class="fld"><label>입사(시작)</label><input class="c-start" type="month" value="'+(c.start||'')+'"></div>'+
-   '<div class="fld"><label>퇴사(종료)</label><input class="c-end" type="month" value="'+(c.end||'')+'"></div>'+
+   '<div class="fld"><label>입사(시작)</label><input class="c-start" type="date" value="'+_d(c.start)+'"></div>'+
+   '<div class="fld"><label>퇴사(종료)</label><input class="c-end" type="date" value="'+_d(c.end)+'"></div>'+
    '<div class="fld"><label>직종</label><input class="c-job" placeholder="예: 용접원" value="'+(c.job||'')+'"></div>'+
    '<div class="fld"><label>보험</label><input class="c-insure" placeholder="고용/산재" value="'+(c.insure||'')+'"></div>'+
    '<label class="haz" style="grid-column:1/3"><input type="checkbox" class="c-haz" '+(c.hazard?'checked':'')+'> 신체부담·유해 직종 (타임라인에 강조 표시)</label>';
@@ -662,7 +667,7 @@ function careerRow(c={}){const d=document.createElement('div');d.className='crow
   document.getElementById('tl-careers').appendChild(d);}
 function medRow(m={}){const d=document.createElement('div');d.className='crow2';
   d.innerHTML='<button class="del">✕</button>'+
-   '<div class="fld"><label>진료일</label><input class="m-date" type="month" value="'+(m.date||'')+'"></div>'+
+   '<div class="fld"><label>진료일</label><input class="m-date" type="date" value="'+_d(m.date)+'"></div>'+
    '<div class="fld"><label>병원</label><input class="m-hosp" placeholder="예: OO대학병원" value="'+(m.hospital||'')+'"></div>'+
    '<div class="fld" style="grid-column:1/3"><label>진단/소견</label><input class="m-dx" placeholder="예: 직업성 폐질환 진단" value="'+(m.dx||'')+'"></div>'+
    '<div class="fld" style="grid-column:1/3"><label>비고</label><input class="m-note" placeholder="예: 흉부CT 시행" value="'+(m.note||'')+'"></div>';
