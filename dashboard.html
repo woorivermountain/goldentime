@@ -1,7 +1,7 @@
 <!doctype html>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>산재 재조사 판정서 워크벤치</title>
+<title>산재 재해조사 판정서 워크벤치</title>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@latest/dist/web/static/pretendard.min.css">
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
@@ -106,6 +106,11 @@
   .frow{margin-bottom:8px}.frow label{display:block;font-size:10.5px;color:var(--ink3);margin-bottom:3px}
   .frow input{width:100%;padding:7px 9px;border:1px solid var(--line2);border-radius:6px;font-size:12.5px;font-family:inherit}
   .crow{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-bottom:6px;padding:8px;background:var(--surface2);border-radius:7px;position:relative}
+  .crow2{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-bottom:9px;padding:11px 11px 9px;background:#fff;border:1px solid var(--line2);border-radius:9px;position:relative}
+  .crow2 .fld label{display:block;font-size:9.5px;color:var(--ink3);margin-bottom:2px;font-weight:600}
+  .crow2 .fld input{width:100%;padding:6px 8px;border:1px solid var(--line2);border-radius:6px;font-size:11.5px;font-family:inherit;box-sizing:border-box}
+  .crow2 .haz{display:flex;align-items:center;gap:6px;font-size:10.5px;color:var(--ink2);margin-top:2px}
+  .crow2 .del{position:absolute;top:7px;right:8px;cursor:pointer;color:var(--no);font-size:13px;border:none;background:none;z-index:2}
   .crow input{padding:5px 7px;border:1px solid var(--line2);border-radius:5px;font-size:11px;font-family:inherit}
   .crow .full2{grid-column:1/3}
   .crow .haz{grid-column:1/3;display:flex;align-items:center;gap:6px;font-size:11px;color:var(--ink2)}
@@ -225,7 +230,7 @@
 <div id="t1" class="tabpane active">
 <div class="wb">
   <aside class="left">
-    <div class="brand"><div class="lg">災</div><div><b>판정서 워크벤치</b><span>업무상질병 재조사 · 공공빅데이터</span></div></div>
+    <div class="brand"><div class="lg">災</div><div><b>판정서 워크벤치</b><span>업무상질병 재해조사 · 공공빅데이터</span></div></div>
 
     <div class="lsec"><p class="t"><span class="badgeAB">A</span> 일상어로 시작</p>
       <div class="f"><label>민원인 일상어 / 사실관계</label><input id="s-text" placeholder="예: 허리가 아프고 무거운 걸 많이 드는 일을 오래 했다"></div>
@@ -233,8 +238,8 @@
       <button class="btn" id="predict" style="margin-top:6px">분류어로 변환 · 사전 예측 기록</button>
       <div id="seal-box"></div>
       <div id="adv-box" style="display:none">
-        <div class="f" style="margin-top:8px"><label>자문위 결정문 입력 <span style="color:var(--side-ink2);font-weight:400">(판정 결과·질병명을 붙여넣기)</span></label>
-          <textarea id="s-adv-text" rows="3" placeholder="예: 신청 상병 '직업성 천식'은 업무와 상당인과관계가 인정되어… (자문위 결정문 일부 또는 질병명)" style="width:100%;padding:8px 10px;border:1px solid var(--line2);border-radius:7px;font-size:12px;font-family:inherit;resize:vertical"></textarea></div>
+        <div class="f" style="margin-top:8px"><label>자문의사 소견 입력 <span style="color:var(--side-ink2);font-weight:400">(판정 결과·질병명을 붙여넣기)</span></label>
+          <textarea id="s-adv-text" rows="3" placeholder="예: 신청 상병 '직업성 천식'은 업무와 상당인과관계가 인정되어… (자문의사 소견 일부 또는 질병명)" style="width:100%;padding:8px 10px;border:1px solid var(--line2);border-radius:7px;font-size:12px;font-family:inherit;resize:vertical"></textarea></div>
         <button class="btn" id="compare" style="background:#3a6b46">결정문에서 분류 인식 · 대조</button>
         <div id="cmp-box"></div>
       </div>
@@ -266,7 +271,7 @@
     <div class="prov" id="prov"></div>
     <div class="rsec" id="sim-sec" style="display:none"><p class="t">🎯 가장 유사한 판정서</p><div id="sim-box"></div></div>
     <div class="rsec"><p class="t" id="det-title">노드 상세</p><div id="det"><div class="det-empty">트리에서 노드를 선택하세요.</div></div></div>
-    <div class="rsec"><p class="t">재조사 가이드라인</p><div id="guide"></div></div>
+    <div class="rsec"><p class="t">재해조사 가이드라인</p><div id="guide"></div></div>
     <div class="disc"><b>⚠ 참고용 보조 지표</b> — 인정/불인정 판정이 아니며 최종 판단은 업무상질병판정위원회 권한입니다.</div>
   </aside>
 </div>
@@ -403,7 +408,7 @@
         <p class="gp"><b>무엇을 하나요?</b> 민원인의 상병을 표준 질병분류로 변환하고, 같은 조건의 실제 판정서(공공데이터)를 찾아 인정/불인정 분포를 트리로 보여줍니다. 가장 유사한 판정서 3건과, 인정·불인정을 가른 핵심 자료를 데이터로 제시합니다.</p>
         <p class="gp"><b>사용법</b></p>
         <ul class="gul">
-          <li><b>A 일상어로 시작:</b> 민원인 진술을 입력 → "분류어로 변환 · 사전 예측 기록" → 자문위 결정문을 붙여넣어 대조.</li>
+          <li><b>A 일상어로 시작:</b> 민원인 진술을 입력 → "분류어로 변환 · 사전 예측 기록" → 자문의사 소견을 붙여넣어 대조.</li>
           <li><b>B 분류 선택으로 시작:</b> 질병구분·직종을 직접 선택하고 신체부위·부담요인 필터 후 "판정서 트리 생성".</li>
           <li>트리의 판정서를 클릭하면 우측에 상세·가이드라인이, 본문 보기 버튼으로 원문 일부를 확인할 수 있습니다.</li>
         </ul>
@@ -477,7 +482,7 @@ function predictLocal(text){const r=[];for(const dz in DZKB){const h=DZKB[dz].fi
 async function doPredict(){const text=gv('s-text').trim();if(!text){alert('일상어를 입력하거나 예시 채우기를 누르세요');return;}
  let res;try{const r=await fetch('/api/predict',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({case_id:'C',case_text:text})});if(!r.ok)throw 0;res=await r.json();if(res.error)throw 0;}catch(e){res={seal_hash:'L'+Math.random().toString(16).slice(2,8),predictions:predictLocal(text)};}
  SEALED=res;const p=res.predictions||[];
- document.getElementById('seal-box').innerHTML='<div class="seal"><div style="color:#6ee7b7;font-size:10px;margin-bottom:5px">📌 사전 예측 기록됨 · 자문위 판단 전 · ID '+res.seal_hash+'</div>'+(p.length?p.map((x,i)=>'<div style="color:#fff;margin-bottom:2px">'+(i===0?'\u25b6 ':'\u00b7 ')+x.disease+' <span style="color:#9aa3ac">('+x.confidence+')</span></div>').join(''):'<span style="color:#9aa3ac">매칭 분류 없음</span>')+'</div>';
+ document.getElementById('seal-box').innerHTML='<div class="seal"><div style="color:#6ee7b7;font-size:10px;margin-bottom:5px">📌 사전 예측 기록됨 · 자문의사 판단 전 · ID '+res.seal_hash+'</div>'+(p.length?p.map((x,i)=>'<div style="color:#fff;margin-bottom:2px">'+(i===0?'\u25b6 ':'\u00b7 ')+x.disease+' <span style="color:#9aa3ac">('+x.confidence+')</span></div>').join(''):'<span style="color:#9aa3ac">매칭 분류 없음</span>')+'</div>';
  document.getElementById('adv-box').style.display='block';
  // 1순위를 질병구분 드롭다운에 자동 반영 (A→B 연결)
  if(p.length){const sel=document.getElementById('i-kindc');if([...sel.options].some(o=>o.value===(p[0].kindc||p[0].disease))){sel.value=(p[0].kindc||p[0].disease);}}
@@ -505,9 +510,9 @@ async function doCompare(){
   if(!adv){cmp.innerHTML='<div class="seal" style="border-color:#fbbf24"><div style="color:#fbbf24;font-size:10.5px">결정문에서 질병분류를 인식하지 못했습니다. 질병명(예: 천식, 난청, 추간판탈출 등)이 포함되도록 입력해 주세요.</div></div>';return;}
   let res;try{const r=await fetch('/api/compare',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sealed:SEALED,advisory:adv})});if(!r.ok)throw 0;res=await r.json();}catch(e){const preds=(SEALED.predictions||[]).map(p=>p.kindc||p.disease);res={verdict:adv===preds[0]?'일치':(preds.includes(adv)?'후보내_일치':'불일치'),ai_top:preds[0],advisory:adv};}
   const ok=res.verdict==='일치',color=ok?'#34d399':res.verdict==='불일치'?'#f87171':'#fbbf24';
-  cmp.innerHTML='<div class="seal" style="border-color:'+color+'"><div style="color:'+color+';font-weight:700;font-size:11px">'+(ok?'\u2705 일치 — 근거 기록':res.verdict==='불일치'?'\u274c 불일치 — 재조사 쟁점':'\u26a0 후보 내 일치')+'</div>'+
+  cmp.innerHTML='<div class="seal" style="border-color:'+color+'"><div style="color:'+color+';font-weight:700;font-size:11px">'+(ok?'\u2705 일치 — 근거 기록':res.verdict==='불일치'?'\u274c 불일치 — 재해조사 쟁점':'\u26a0 후보 내 일치')+'</div>'+
     '<div style="color:#cdd3da;font-size:10.5px;margin-top:4px">결정문 인식 분류: <b style="color:#fff">'+adv+'</b><br>사전 예측(AI): '+(res.ai_top||'—')+'</div>'+
-    (res.verdict==='불일치'?'<div style="color:#fca5a5;font-size:10px;margin-top:4px">→ AI 예측과 자문위 분류가 달라 재조사 검토 대상으로 표시됩니다.</div>':'')+'</div>';
+    (res.verdict==='불일치'?'<div style="color:#fca5a5;font-size:10px;margin-top:4px">→ AI 예측과 자문의사 소견 분류가 달라 재해조사 검토 대상으로 표시됩니다.</div>':'')+'</div>';
   const sel=document.getElementById('i-kindc');if([...sel.options].some(o=>o.value===adv))sel.value=adv;
 }
 
@@ -546,7 +551,7 @@ async function run(){
 // ── 트리 SVG ──
 const NS="http://www.w3.org/2000/svg";
 function el(t,a,x){const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);if(x!=null)e.textContent=x;return e;}
-const RW=210,FW=200,LW=150,LH=30,FH=46,VGAP=9,COLX=[15,265,500];
+const RW=210,FW=200,LW=190,LH=30,FH=46,VGAP=9,COLX=[15,265,500];
 function layout(tree){const rows=[];const root=Object.assign({},tree,{depth:0});rows.push(root);let cur=12;
  (tree.children||[]).forEach(f=>{const open=!collapsed[f.id];const lc=open?f.children.length:0;const bh=Math.max(FH,lc*(LH+VGAP)-VGAP);f.y=cur+bh/2;f.depth=1;rows.push(f);
   if(open){let ly=cur+(bh-(lc*(LH+VGAP)-VGAP))/2;f.children.forEach(l=>{l.y=ly+LH/2;l.depth=2;rows.push(l);ly+=LH+VGAP;});}cur+=bh+14;});
@@ -575,7 +580,7 @@ function facN(n){const g=el('g',{class:'node clickable'}),x=COLX[1],y=n.y-FH/2;
 function leafN(n){const g=el('g',{class:'node clickable'}),x=COLX[2],y=n.y-LH/2;
  const col=n.result==='인정'?['var(--ok-bg)','var(--ok-line)','var(--ok)']:n.result==='불인정'?['var(--no-bg)','var(--no-line)','var(--no)']:['var(--hold-bg)','var(--hold-line)','var(--hold)'];
  g.appendChild(el('rect',{x,y,width:LW,height:LH,rx:7,fill:col[0],stroke:col[1]}));
- g.appendChild(el('text',{x:x+10,y:n.y-2,fill:'var(--ink)','font-size':10,'font-weight':600,'font-family':'IBM Plex Mono'},(n.label||'').slice(0,13)));
+ g.appendChild(el('text',{x:x+10,y:n.y-2,fill:'var(--ink)','font-size':10,'font-weight':600,'font-family':'IBM Plex Mono'},(n.label||'').length>18?(n.label||'').slice(0,17)+'…':(n.label||'')));
  g.appendChild(el('text',{x:x+10,y:n.y+10,fill:col[2],'font-size':9,'font-weight':700},n.verdict||n.result));
  g.onclick=()=>selectLeaf(n);return g;}
 
@@ -583,30 +588,34 @@ function selectFactor(n){document.getElementById('det-title').textContent='신�
  document.getElementById('det').innerHTML='<div class="stat"><div class="s ok"><div class="n">'+n.accept+'</div><div class="l">인정</div></div><div class="s no"><div class="n">'+n.reject+'</div><div class="l">불인정</div></div><div class="s hold"><div class="n">'+n.hold+'</div><div class="l">보류/이송</div></div></div><div class="kv"><span class="k">판정서 수</span><span class="v">'+n.count+'건</span></div><div class="kv"><span class="k">인정률</span><span class="v">'+n.accept_rate+'%</span></div><div class="kv"><span class="k">현재 케이스</span><span class="v">'+(n.onpath?'이 부위':'아님')+'</span></div><p style="font-size:11.5px;color:var(--ink3);margin-top:8px">판정서(잎)를 클릭하면 직종·부담요인·결정자료가 표시됩니다.</p>';}
 function selectLeaf(n){document.getElementById('det-title').textContent='판정서 · '+n.label;
  const cls=n.result==='인정'?'ok':n.result==='불인정'?'no':'hold';
- document.getElementById('det').innerHTML='<div class="kv"><span class="k">심의결과</span><span class="v"><span class="badge '+cls+'">'+(n.verdict||n.result)+'</span></span></div><div class="kv"><span class="k">직종</span><span class="v" style="font-size:11px">'+(n.job||'—')+'</span></div>'+(n.industry?'<div class="kv"><span class="k">업종</span><span class="v" style="font-size:11px">'+n.industry+'</span></div>':'')+(n.years!=null?'<div class="kv"><span class="k">근무기간</span><span class="v">'+n.years+'년</span></div>':'')+'<div class="gt">신체부위</div>'+((n.body_parts||[]).map(x=>'<span class="chip">'+x+'</span>').join('')||'—')+'<div class="gt">부담요인</div>'+((n.burden||[]).map(x=>'<span class="chip">'+x+'</span>').join('')||'—')+'<div class="gt">결정 자료</div>'+((n.docs||[]).map(x=>'<span class="chip gray">'+x+'</span>').join('')||'—')+(n.sint?'<div class="gt">신청내용 발췌</div><div class="excerpt">'+n.sint+'</div>':'')+'<div class="gt">원본 판정서</div><button class="docbtn" onclick=\'showDoc('+JSON.stringify(JSON.stringify({no:n.label,v:n.verdict||n.result,nc:n.noncontent||n.excerpt||""}))+')\'>📄 이 판정서 내용 보기</button>';}
-function showDoc(s){const d=JSON.parse(s);document.getElementById('doc-title').textContent='판정서 '+d.no+' ('+d.v+')';
- document.getElementById('doc-body').innerHTML='<div style="background:var(--hold-bg);border:1px solid var(--hold-line);border-radius:6px;padding:9px 11px;font-size:11px;color:var(--hold);margin-bottom:12px">※ 공공데이터 API는 판정서 본문 일부만 제공합니다. 전문은 아래 원문 링크에서 조회하세요.</div><div style="white-space:pre-wrap">'+(d.nc||'(본문 미제공)')+'</div><div style="margin-top:14px"><a href="https://www.data.go.kr/data/15110836/openapi.do" target="_blank" style="display:inline-block;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:8px 13px;text-decoration:none">원문 조회 (공공데이터포털) ↗</a></div>';
+ document.getElementById('det').innerHTML='<div class="kv"><span class="k">심의결과</span><span class="v"><span class="badge '+cls+'">'+(n.verdict||n.result)+'</span></span></div><div class="kv"><span class="k">직종</span><span class="v" style="font-size:11px">'+(n.job||'—')+'</span></div>'+(n.industry?'<div class="kv"><span class="k">업종</span><span class="v" style="font-size:11px">'+n.industry+'</span></div>':'')+(n.years!=null?'<div class="kv"><span class="k">근무기간</span><span class="v">'+n.years+'년</span></div>':'')+'<div class="gt">신체부위</div>'+((n.body_parts||[]).map(x=>'<span class="chip">'+x+'</span>').join('')||'—')+'<div class="gt">부담요인</div>'+((n.burden||[]).map(x=>'<span class="chip">'+x+'</span>').join('')||'—')+'<div class="gt">결정 자료</div>'+((n.docs||[]).map(x=>'<span class="chip gray">'+x+'</span>').join('')||'—')+(n.sint?'<div class="gt">신청내용 발췌</div><div class="excerpt">'+n.sint+'</div>':'')+'<div class="gt">원본 판정서</div><button class="docbtn" onclick="showDocAt('+regDoc(n.label,n.verdict||n.result,n.noncontent||n.excerpt||'')+')">📄 이 판정서 내용 보기</button>';}
+var DOCSTORE=[];
+function showDocAt(i){const d=DOCSTORE[i];if(!d)return;document.getElementById('doc-title').textContent='판정서 '+d.no+' ('+d.v+')';
+ document.getElementById('doc-body').innerHTML='<div style="background:var(--hold-bg);border:1px solid var(--hold-line);border-radius:6px;padding:9px 11px;font-size:11px;color:var(--hold);margin-bottom:12px">※ 공공데이터 API는 판정서 본문 일부만 제공합니다. 전문은 아래 원문 링크에서 조회하세요.</div><div style="white-space:pre-wrap">'+((d.nc||'').replace(/</g,'&lt;')||'(본문 미제공)')+'</div><div style="margin-top:14px"><a href="https://www.data.go.kr/data/15110836/openapi.do" target="_blank" style="display:inline-block;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:8px 13px;text-decoration:none">원문 조회 (공공데이터포털) ↗</a></div>';
  document.getElementById('docmodal').style.display='flex';}
+function regDoc(no,v,nc){DOCSTORE.push({no:no,v:v,nc:nc||''});return DOCSTORE.length-1;}
 function renderSimilar(sim){
   const sec=document.getElementById('sim-sec'),box=document.getElementById('sim-box');
   if(!sim||!sim.length){sec.style.display='none';return;}
   sec.style.display='block';
-  box.innerHTML='<div style="font-size:11px;color:var(--ink3);margin-bottom:8px">현재 사건과 가장 가까운 과거 판정서입니다. 유사 근거와 당시 결과를 참고하세요.</div>'+
+  box.innerHTML='<div style="font-size:11px;color:var(--ink3);margin-bottom:8px">현재 사건과 비교 요소가 일치하는 판정서를 <b>최근 순</b>으로 보여줍니다. 유사 근거와 당시 결과를 참고하세요.</div>'+
    sim.map((s,i)=>{
     const cls=s.result==='인정'?'ok':s.result==='불인정'?'no':'hold';
     return '<div class="simcard">'+
       '<div class="simhead"><span class="rank">'+(i+1)+'</span><span class="badge '+cls+'">'+(s.verdict||s.result)+'</span>'+
       '<span class="simpct">유사도 '+s.match_pct+'%</span></div>'+
       '<div style="font-size:10px;color:var(--ink3);margin-bottom:4px">비교 요소 '+(s.axes_total||0)+'개 중 '+(s.matched||0)+'개 일치</div>'+
-      '<div class="simno">'+s.case_no+' · '+(s.job||'')+(s.years!=null?' · '+s.years+'년':'')+'</div>'+
+      '<div class="simno">'+s.case_no+' · '+(s.job||'')+(s.years!=null?' · '+s.years+'년':'')+(s.year?' · '+s.year+'년 판정':'')+'</div>'+
       '<div class="simwhy">'+(s.reasons||[]).map(r=>'<span class="rtag">'+r+'</span>').join('')+'</div>'+
-      '<button class="docbtn" style="margin-top:7px;font-size:11px;padding:5px 10px" onclick=\'showDoc('+JSON.stringify(JSON.stringify({no:s.case_no,v:s.verdict||s.result,nc:s.noncontent||''}))+')\'>📄 이 판정서 내용 보기</button>'+
+      '<button class="docbtn" style="margin-top:7px;font-size:11px;padding:5px 10px" onclick="showDocAt('+regDoc(s.case_no,s.verdict||s.result,s.noncontent||'')+')">📄 이 판정서 내용 보기</button>'+
       '</div>';
    }).join('');
 }
 function renderGuide(res){const g=res.guideline;
  const cpHtml=g.cp.map(c=>{const parts=c.split('▶');const head=parts[0].trim();const tip=parts[1]?parts[1].trim():'';return '<li>'+head+(tip?'<div style="margin-top:5px;padding:6px 9px;background:var(--soft);border-radius:6px;font-size:11.5px;color:var(--accent)"><b>▶</b> '+tip+'</div>':'')+'</li>';}).join('');
- document.getElementById('guide').innerHTML='<p class="excerpt">'+g.lead+'</p><div class="stat"><div class="s ok"><div class="n">'+g.acc+'</div><div class="l">인정</div></div><div class="s no"><div class="n">'+g.rej+'</div><div class="l">불인정</div></div><div class="s hold"><div class="n">'+g.hold+'</div><div class="l">보류/이송</div></div></div><div class="gt">보완 체크포인트 (인정 vs 불인정 비교 기반)</div><ul class="glist">'+cpHtml+'</ul>'+(g.keyDocs&&g.keyDocs.length?'<div class="gt">인정 판정서 빈출 자료</div>'+g.keyDocs.slice(0,6).map(d=>'<span class="chip gray">'+d+'</span>').join(''):'');}
+ document.getElementById('guide').innerHTML='<p class="excerpt">'+g.lead+'</p><div class="stat"><div class="s ok"><div class="n">'+g.acc+'</div><div class="l">인정</div></div><div class="s no"><div class="n">'+g.rej+'</div><div class="l">불인정</div></div><div class="s hold"><div class="n">'+g.hold+'</div><div class="l">보류/이송</div></div></div><div class="gt">보완 체크포인트 (인정 vs 불인정 비교 기반)</div><ul class="glist">'+cpHtml+'</ul>'+
+   (g.survey&&g.survey.length?'<div class="gt">🏭 사업장 사실조회 항목 (담당자 조회용)</div><ul class="glist">'+g.survey.map(x=>'<li>'+x+'</li>').join('')+'</ul>':'')+
+   (g.keyDocs&&g.keyDocs.length?'<div class="gt">인정 판정서 빈출 자료</div>'+g.keyDocs.slice(0,6).map(d=>'<span class="chip gray">'+d+'</span>').join(''):'');}
 function renderProv(res){
   const e=res.evidence;
   let ev='';
@@ -641,22 +650,22 @@ document.querySelectorAll('.tab').forEach(t=>t.onclick=()=>{
   t.classList.add('active');document.getElementById(t.dataset.tab).classList.add('active');
 });
 // ── 타임라인 입력 행 ──
-function careerRow(c={}){const d=document.createElement('div');d.className='crow';
+function careerRow(c={}){const d=document.createElement('div');d.className='crow2';
   d.innerHTML='<button class="del">✕</button>'+
-   '<input class="c-start" placeholder="시작 2001-02" value="'+(c.start||'')+'">'+
-   '<input class="c-end" placeholder="종료 2013-10" value="'+(c.end||'')+'">'+
-   '<input class="c-site full2" placeholder="사업장" value="'+(c.site||'')+'">'+
-   '<input class="c-job" placeholder="직종" value="'+(c.job||'')+'">'+
-   '<input class="c-insure" placeholder="고용/산재보험" value="'+(c.insure||'')+'">'+
-   '<label class="haz"><input type="checkbox" class="c-haz" '+(c.hazard?'checked':'')+'> 신체부담·유해 직종</label>';
+   '<div class="fld" style="grid-column:1/3"><label>사업장명</label><input class="c-site" placeholder="예: 현대중공업" value="'+(c.site||'')+'"></div>'+
+   '<div class="fld"><label>입사(시작)</label><input class="c-start" type="month" value="'+(c.start||'')+'"></div>'+
+   '<div class="fld"><label>퇴사(종료)</label><input class="c-end" type="month" value="'+(c.end||'')+'"></div>'+
+   '<div class="fld"><label>직종</label><input class="c-job" placeholder="예: 용접원" value="'+(c.job||'')+'"></div>'+
+   '<div class="fld"><label>보험</label><input class="c-insure" placeholder="고용/산재" value="'+(c.insure||'')+'"></div>'+
+   '<label class="haz" style="grid-column:1/3"><input type="checkbox" class="c-haz" '+(c.hazard?'checked':'')+'> 신체부담·유해 직종 (타임라인에 강조 표시)</label>';
   d.querySelector('.del').onclick=()=>d.remove();
   document.getElementById('tl-careers').appendChild(d);}
-function medRow(m={}){const d=document.createElement('div');d.className='crow';
+function medRow(m={}){const d=document.createElement('div');d.className='crow2';
   d.innerHTML='<button class="del">✕</button>'+
-   '<input class="m-date" placeholder="2020-11" value="'+(m.date||'')+'">'+
-   '<input class="m-hosp" placeholder="병원" value="'+(m.hospital||'')+'">'+
-   '<input class="m-dx full2" placeholder="진단/소견" value="'+(m.dx||'')+'">'+
-   '<input class="m-note full2" placeholder="비고" value="'+(m.note||'')+'">';
+   '<div class="fld"><label>진료일</label><input class="m-date" type="month" value="'+(m.date||'')+'"></div>'+
+   '<div class="fld"><label>병원</label><input class="m-hosp" placeholder="예: OO대학병원" value="'+(m.hospital||'')+'"></div>'+
+   '<div class="fld" style="grid-column:1/3"><label>진단/소견</label><input class="m-dx" placeholder="예: 직업성 폐질환 진단" value="'+(m.dx||'')+'"></div>'+
+   '<div class="fld" style="grid-column:1/3"><label>비고</label><input class="m-note" placeholder="예: 흉부CT 시행" value="'+(m.note||'')+'"></div>';
   d.querySelector('.del').onclick=()=>d.remove();
   document.getElementById('tl-medical').appendChild(d);}
 document.getElementById('add-career').onclick=()=>careerRow();
@@ -694,7 +703,6 @@ function renderTL(a){
   const careerEvs=evs.filter(e=>e.kind==='career');
   const medEvs=evs.filter(e=>e.kind==='medical');
   const onsetEvs=evs.filter(e=>e.kind==='onset');
-  // 연도 범위
   const yrs=[];
   [...careerEvs].forEach(e=>{const m=(e.start||'').match(/(\d{4})/),m2=(e.end||'').match(/(\d{4})/);if(m)yrs.push(+m[1]);if(m2)yrs.push(+m2[1]);});
   [...medEvs,...onsetEvs].forEach(e=>{const m=(e.date||'').match(/(\d{4})/);if(m)yrs.push(+m[1]);});
@@ -702,51 +710,71 @@ function renderTL(a){
   let minY=Math.min(...yrs),maxY=Math.max(...yrs)+1;const span=Math.max(maxY-minY,1);
   const X=v=>((v-minY)/span*100);
   const yearOf=str=>{const m=(str||'').match(/(\d{4})(?:[-.](\d{1,2}))?/);if(!m)return null;return +m[1]+(m[2]?(+m[2]-1)/12:0);};
-
-  // 요약 카드
   let html='<div class="sumbar"><div class="sb"><div class="n">'+(s.official_years||0)+'</div><div class="l">4대보험 직력(년)</div></div>'+
     '<div class="sb"><div class="n">'+(s.hazard_years||0)+'</div><div class="l">유해업무 노출(년)</div></div>'+
     '<div class="sb"><div class="n">'+(s.stated_years||'—')+'</div><div class="l">본인 진술(년)</div></div></div>';
-
-  // 범례
-  html+='<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink2);margin-bottom:10px">'+
+  html+='<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink2);margin-bottom:12px">'+
     '<span><span style="display:inline-block;width:14px;height:10px;background:var(--accent2);border-radius:2px;vertical-align:middle"></span> 유해·부담 직종</span>'+
     '<span><span style="display:inline-block;width:14px;height:10px;background:var(--line2);border-radius:2px;vertical-align:middle"></span> 일반 직종</span>'+
     '<span><span style="display:inline-block;width:10px;height:10px;background:var(--no);border-radius:50%;vertical-align:middle"></span> 의료기록</span>'+
-    '<span><span style="display:inline-block;width:10px;height:10px;background:var(--hold);border-radius:50%;vertical-align:middle"></span> 발병(진단)</span></div>';
-
-  // 연도 눈금
+    '<span><span style="display:inline-block;width:10px;height:10px;background:var(--hold);border-radius:50%;vertical-align:middle"></span> 발병(진단)</span>'+
+    '<span style="color:var(--ink3)">· 막대/점에 마우스를 올리면 상세가 보입니다</span></div>';
   const ticks=[];const step=span>20?5:(span>10?2:1);
   for(let y=Math.ceil(minY);y<=maxY;y+=step)ticks.push(y);
-  html+='<div style="position:relative;height:20px;margin:0 0 2px 0;border-bottom:1px solid var(--line2)">'+
-    ticks.map(y=>'<span style="position:absolute;left:'+X(y)+'%;font-size:10px;color:var(--ink3);font-family:IBM Plex Mono;transform:translateX(-50%)">'+y+'</span>').join('')+'</div>';
-
-  // 직력 막대 (행별)
-  html+='<div style="position:relative;padding-top:6px">';
-  careerEvs.forEach((e,i)=>{
+  const careerRows=careerEvs.filter(e=>yearOf(e.start)!=null);
+  const chartH=careerRows.length*34+12;
+  const markers=[...medEvs.map(e=>({...e,c:'var(--no)',ic:'🏥',type:'의료기록'})),...onsetEvs.map(e=>({...e,c:'var(--hold)',ic:'⚑',type:'발병(진단)'}))]
+    .filter(e=>yearOf(e.date)!=null).sort((p,q)=>yearOf(p.date)-yearOf(q.date));
+  const markH=markers.length*26+10;
+  html+='<div id="tl-plot" style="position:relative;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 0 10px">';
+  html+='<div style="position:relative;height:24px;margin:0 14px;border-bottom:1px solid var(--line2)">'+
+    ticks.map(y=>'<span style="position:absolute;left:'+X(y)+'%;font-size:10px;color:var(--ink3);font-family:IBM Plex Mono;transform:translateX(-50%);top:6px">'+y+'</span>').join('')+'</div>';
+  html+='<div id="tl-track" style="position:relative;margin:8px 14px 0;height:'+(chartH+markH)+'px">';
+  html+=ticks.map(y=>'<div style="position:absolute;left:'+X(y)+'%;top:0;bottom:0;width:1px;background:var(--line);opacity:.5"></div>').join('');
+  html+='<div id="tl-cursor" style="position:absolute;top:0;bottom:0;width:2px;background:var(--accent2);opacity:0;pointer-events:none;transition:opacity .1s"></div>';
+  careerRows.forEach((e,i)=>{
     const a1=yearOf(e.start),b1=yearOf(e.end);
-    if(a1==null)return;
-    const left=X(a1),width=Math.max((b1!=null?X(b1)-X(a1):2),4);
+    const left=X(a1),width=Math.max((b1!=null?X(b1)-X(a1):2),3);
     const site=(e.label||'').split('·')[0].trim();
-    html+='<div style="position:relative;height:30px;margin-bottom:4px">'+
-      '<div title="'+e.label+' ('+(e.dur||'')+')" style="position:absolute;left:'+left+'%;width:'+width+'%;top:3px;height:24px;background:'+(e.hazard?'var(--accent2)':'var(--line2)')+';border-radius:5px;display:flex;align-items:center;padding:0 7px;overflow:hidden;white-space:nowrap;color:'+(e.hazard?'#fff':'var(--ink2)')+';font-size:10.5px;font-weight:600">'+site+' <span style="opacity:.8;margin-left:5px;font-weight:400">'+(e.dur||'')+'</span></div></div>';
+    const det=encodeURIComponent(JSON.stringify({title:site,sub:(e.label||'').split('·').slice(1).join('·').trim(),period:(e.start||'')+' ~ '+(e.end||'')+' ('+(e.dur||'')+')',hazard:e.hazard}));
+    html+='<div class="tl-bar" data-det="'+det+'" style="position:absolute;left:'+left+'%;width:'+width+'%;top:'+(i*34+4)+'px;height:26px;background:'+(e.hazard?'var(--accent2)':'var(--line2)')+';border-radius:6px;display:flex;align-items:center;padding:0 8px;overflow:hidden;white-space:nowrap;color:'+(e.hazard?'#fff':'var(--ink2)')+';font-size:11px;font-weight:600;cursor:pointer;border:2px solid transparent;box-sizing:border-box">'+site+' <span style="opacity:.85;margin-left:6px;font-weight:400;font-size:10px">'+(e.dur||'')+'</span></div>';
   });
-  // 의료/발병 마커 (같은 축 위 세로선 + 점)
-  const markers=[...medEvs.map(e=>({...e,c:'var(--no)',ic:'🏥'})),...onsetEvs.map(e=>({...e,c:'var(--hold)',ic:'⚑'}))];
-  if(markers.length){
-    html+='<div style="position:relative;height:'+(markers.length*22+10)+'px;margin-top:8px;border-top:1px dashed var(--line2);padding-top:8px">';
-    markers.forEach((e,i)=>{const x=X(yearOf(e.date));
-      html+='<div style="position:absolute;left:'+x+'%;top:0;bottom:0;width:1px;background:'+e.c+';opacity:.3"></div>'+
-        '<div style="position:absolute;left:'+x+'%;top:'+(i*22+4)+'px;transform:translateX(-50%);display:flex;align-items:center;gap:5px;white-space:nowrap"><span style="width:9px;height:9px;border-radius:50%;background:'+e.c+';flex:none"></span><span style="font-size:10.5px;color:var(--ink2);background:var(--surface);padding:1px 5px;border-radius:4px;border:1px solid var(--line)">'+e.ic+' '+(e.date||'')+' '+(e.label||'')+'</span></div>';
-    });
-    html+='</div>';
-  }
-  html+='</div>';
+  markers.forEach((e,i)=>{const x=X(yearOf(e.date));const top=chartH+i*26;
+    const det=encodeURIComponent(JSON.stringify({title:e.ic+' '+e.type,sub:(e.hospital||e.label||''),period:(e.date||'')+(e.dx?' · '+e.dx:''),note:e.note||''}));
+    html+='<div style="position:absolute;left:'+x+'%;top:'+chartH+'px;height:'+(markers.length*26)+'px;width:1px;background:'+e.c+';opacity:.25"></div>'+
+      '<div class="tl-mark" data-det="'+det+'" style="position:absolute;left:'+x+'%;top:'+(top+4)+'px;transform:translateX(-50%);display:flex;align-items:center;gap:5px;white-space:nowrap;cursor:pointer">'+
+      '<span style="width:11px;height:11px;border-radius:50%;background:'+e.c+';flex:none;border:2px solid #fff;box-shadow:0 0 0 1px '+e.c+'"></span>'+
+      '<span style="font-size:10.5px;color:var(--ink2);background:#fff;padding:2px 7px;border-radius:5px;border:1px solid var(--line)">'+e.ic+' '+(e.date||'')+' '+((e.label||e.hospital||'')).slice(0,18)+'</span></div>';
+  });
+  html+='</div></div>';
+  html+='<div id="tl-tip" style="position:fixed;display:none;z-index:50;background:#1a1d23;color:#fff;padding:9px 12px;border-radius:8px;font-size:11.5px;line-height:1.5;max-width:260px;box-shadow:0 4px 16px rgba(0,0,0,.25);pointer-events:none"></div>';
   document.getElementById('tl-chart').innerHTML=html;
-
-  // 쟁점
-  document.getElementById('tl-issues').innerHTML='<div class="gt" style="font-size:13px;margin:4px 0 10px">자동 점검 — 재조사 쟁점 '+(a.issues||[]).length+'건</div>'+
+  bindTLHover();
+  document.getElementById('tl-issues').innerHTML='<div class="gt" style="font-size:13px;margin:4px 0 10px">자동 점검 — 재해조사 쟁점 '+(a.issues||[]).length+'건</div>'+
     (a.issues||[]).map(i=>'<div class="issue '+i.level+'"><div class="it">'+i.type+'</div><div class="tx">'+i.text+'</div><div class="ac">▶ '+i.action+'</div></div>').join('');
+}
+function bindTLHover(){
+  const track=document.getElementById('tl-track'),cursor=document.getElementById('tl-cursor'),tip=document.getElementById('tl-tip');
+  if(!track)return;
+  function showTip(el,ev){
+    const d=JSON.parse(decodeURIComponent(el.dataset.det));
+    let h='<div style="font-weight:700;margin-bottom:3px">'+d.title+'</div>';
+    if(d.sub)h+='<div style="color:#cdd3da">'+d.sub+'</div>';
+    if(d.period)h+='<div style="color:#9aa3ac;font-size:10.5px;margin-top:3px">'+d.period+'</div>';
+    if(d.note)h+='<div style="color:#9aa3ac;font-size:10.5px;margin-top:2px">'+d.note+'</div>';
+    if(d.hazard)h+='<div style="color:#6ee7b7;font-size:10px;margin-top:3px">● 유해·부담 직종</div>';
+    tip.innerHTML=h;tip.style.display='block';
+    tip.style.left=Math.min(ev.clientX+14,window.innerWidth-270)+'px';
+    tip.style.top=(ev.clientY+14)+'px';
+    const tr=track.getBoundingClientRect(),er=el.getBoundingClientRect();
+    const cx=(el.classList.contains('tl-mark'))?(er.left+er.width/2):er.left;
+    cursor.style.left=(cx-tr.left)+'px';cursor.style.opacity='.6';
+  }
+  track.querySelectorAll('.tl-bar,.tl-mark').forEach(el=>{
+    el.addEventListener('mousemove',e=>showTip(el,e));
+    el.addEventListener('mouseenter',()=>{el.style.borderColor='var(--accent)';});
+    el.addEventListener('mouseleave',()=>{tip.style.display='none';cursor.style.opacity='0';el.style.borderColor='transparent';});
+  });
 }
 document.getElementById('tl-demo').onclick=loadDemo;
 // 질병구분 드롭다운 채우기(타임라인용)
@@ -814,7 +842,7 @@ function buildReport(){
   if(!RES&&!TL){body.innerHTML='<div class="ph">① 또는 ② 단계를 먼저 실행해 주세요.</div>';return;}
   const today=new Date().toISOString().slice(0,10);
   const dz=(RES&&RES.tree&&RES.tree.label)||(TL&&TL.summary&&'—')||'—';
-  let h='<div class="rpt-doc"><h2>업무상질병 재조사 보조 보고서</h2>'+
+  let h='<div class="rpt-doc"><h2>업무상질병 재해조사 보조 보고서</h2>'+
     '<div class="sub">업무상질병판정위원회 상정 전 1차 조사 보조자료 · 작성일 '+today+'</div>';
 
   // 1. 사건 개요
@@ -835,6 +863,11 @@ function buildReport(){
     // 3. 검토 포인트
     h+='<div class="rsec2"><div class="h">3. 데이터 기반 검토 포인트 (인정 vs 불인정 비교)</div><ul class="rlist">'+
        g.cp.map(c=>'<li>'+c.replace('▶','<br><span style="color:var(--accent)">▶</span>')+'</li>').join('')+'</ul></div>';
+    // 3-1. 사업장 사실조회 항목
+    if(g.survey&&g.survey.length){
+      h+='<div class="rsec2"><div class="h">3-1. 사업장 사실조회 권장 항목</div><ul class="rlist">'+
+         g.survey.map(x=>'<li>'+x+'</li>').join('')+'</ul></div>';
+    }
   }
 
   // 4. 사실관계 쟁점 (2단계)
