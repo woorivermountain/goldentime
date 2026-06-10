@@ -725,26 +725,37 @@ function renderTL(a){
   const chartH=careerRows.length*34+12;
   const markers=[...medEvs.map(e=>({...e,c:'var(--no)',ic:'🏥',type:'의료기록'})),...onsetEvs.map(e=>({...e,c:'var(--hold)',ic:'⚑',type:'발병(진단)'}))]
     .filter(e=>yearOf(e.date)!=null).sort((p,q)=>yearOf(p.date)-yearOf(q.date));
-  const markH=markers.length*26+10;
-  html+='<div id="tl-plot" style="position:relative;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 0 10px">';
-  html+='<div style="position:relative;height:24px;margin:0 14px;border-bottom:1px solid var(--line2)">'+
-    ticks.map(y=>'<span style="position:absolute;left:'+X(y)+'%;font-size:10px;color:var(--ink3);font-family:IBM Plex Mono;transform:translateX(-50%);top:6px">'+y+'</span>').join('')+'</div>';
-  html+='<div id="tl-track" style="position:relative;margin:8px 14px 0;height:'+(chartH+markH)+'px">';
-  html+=ticks.map(y=>'<div style="position:absolute;left:'+X(y)+'%;top:0;bottom:0;width:1px;background:var(--line);opacity:.5"></div>').join('');
-  html+='<div id="tl-cursor" style="position:absolute;top:0;bottom:0;width:2px;background:var(--accent2);opacity:0;pointer-events:none;transition:opacity .1s"></div>';
+  const rowH=30, gap=6;
+  const chartH2=careerRows.length*(rowH+gap)+6;
+  const markH=markers.length*24+12;
+  html+='<div id="tl-plot" style="position:relative;border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:0 0 12px;overflow:hidden">';
+  // 연도축
+  html+='<div style="position:relative;height:24px;margin:0 16px;border-bottom:1px solid var(--line2)">'+
+    ticks.map(y=>'<span style="position:absolute;left:'+X(y)+'%;font-size:10px;color:var(--ink3);font-family:IBM Plex Mono;transform:translateX(-50%);top:7px">'+y+'</span>').join('')+'</div>';
+  // 트랙
+  html+='<div id="tl-track" style="position:relative;margin:10px 16px 0;height:'+(chartH2+markH)+'px">';
+  // 격자선
+  html+=ticks.map(y=>'<div style="position:absolute;left:'+X(y)+'%;top:0;bottom:0;width:1px;background:var(--line)"></div>').join('');
+  // 호버 커서선
+  html+='<div id="tl-cursor" style="position:absolute;top:0;bottom:0;width:1px;background:var(--accent2);opacity:0;pointer-events:none"></div>';
+  // 직력 막대 — 글씨 없이 깔끔하게(라벨은 막대 옆 작게 1줄, 길면 생략)
   careerRows.forEach((e,i)=>{
     const a1=yearOf(e.start),b1=yearOf(e.end);
-    const left=X(a1),width=Math.max((b1!=null?X(b1)-X(a1):2),3);
+    const left=X(a1),width=Math.max((b1!=null?X(b1)-X(a1):2),2.5);
     const site=(e.label||'').split('·')[0].trim();
-    const det=encodeURIComponent(JSON.stringify({title:site,sub:(e.label||'').split('·').slice(1).join('·').trim(),period:(e.start||'')+' ~ '+(e.end||'')+' ('+(e.dur||'')+')',hazard:e.hazard}));
-    html+='<div class="tl-bar" data-det="'+det+'" style="position:absolute;left:'+left+'%;width:'+width+'%;top:'+(i*34+4)+'px;height:26px;background:'+(e.hazard?'var(--accent2)':'var(--line2)')+';border-radius:6px;display:flex;align-items:center;padding:0 8px;overflow:hidden;white-space:nowrap;color:'+(e.hazard?'#fff':'var(--ink2)')+';font-size:11px;font-weight:600;cursor:pointer;border:2px solid transparent;box-sizing:border-box">'+site+' <span style="opacity:.85;margin-left:6px;font-weight:400;font-size:10px">'+(e.dur||'')+'</span></div>';
+    const top=i*(rowH+gap);
+    const det=encodeURIComponent(JSON.stringify({title:site,sub:(e.label||'').split('·').slice(1).join('·').trim(),period:(e.start||'')+' ~ '+(e.end||'')+' · '+(e.dur||''),hazard:e.hazard}));
+    // 막대(글씨 없음) + 막대 왼쪽 끝에 라벨(막대 밖, 작게)
+    html+='<div class="tl-bar" data-det="'+det+'" data-mid="'+(left+width/2)+'" style="position:absolute;left:'+left+'%;width:'+width+'%;top:'+(top+4)+'px;height:'+(rowH-8)+'px;background:'+(e.hazard?'var(--accent2)':'var(--line2)')+';border-radius:5px;cursor:pointer;border:1.5px solid transparent;box-sizing:border-box"></div>';
+    html+='<div style="position:absolute;left:'+left+'%;top:'+(top+rowH-3)+'px;font-size:9.5px;color:var(--ink3);white-space:nowrap;pointer-events:none;transform:translateY(-1px)">'+site+'</div>';
   });
-  markers.forEach((e,i)=>{const x=X(yearOf(e.date));const top=chartH+i*26;
+  // 의료/발병 마커 — 막대 구역 아래. 점 + 짧은 날짜만
+  markers.forEach((e,i)=>{const x=X(yearOf(e.date));const top=chartH2+i*24;
     const det=encodeURIComponent(JSON.stringify({title:e.ic+' '+e.type,sub:(e.hospital||e.label||''),period:(e.date||'')+(e.dx?' · '+e.dx:''),note:e.note||''}));
-    html+='<div style="position:absolute;left:'+x+'%;top:'+chartH+'px;height:'+(markers.length*26)+'px;width:1px;background:'+e.c+';opacity:.25"></div>'+
-      '<div class="tl-mark" data-det="'+det+'" style="position:absolute;left:'+x+'%;top:'+(top+4)+'px;transform:translateX(-50%);display:flex;align-items:center;gap:5px;white-space:nowrap;cursor:pointer">'+
-      '<span style="width:11px;height:11px;border-radius:50%;background:'+e.c+';flex:none;border:2px solid #fff;box-shadow:0 0 0 1px '+e.c+'"></span>'+
-      '<span style="font-size:10.5px;color:var(--ink2);background:#fff;padding:2px 7px;border-radius:5px;border:1px solid var(--line)">'+e.ic+' '+(e.date||'')+' '+((e.label||e.hospital||'')).slice(0,18)+'</span></div>';
+    html+='<div style="position:absolute;left:'+x+'%;top:0;height:'+(chartH2+i*24+10)+'px;width:1px;background:'+e.c+';opacity:.2;pointer-events:none"></div>'+
+      '<div class="tl-mark" data-det="'+det+'" data-mid="'+x+'" style="position:absolute;left:'+x+'%;top:'+(top)+'px;transform:translateX(-50%);display:flex;align-items:center;gap:5px;white-space:nowrap;cursor:pointer">'+
+      '<span style="width:10px;height:10px;border-radius:50%;background:'+e.c+';flex:none;border:2px solid #fff;box-shadow:0 0 0 1px '+e.c+'"></span>'+
+      '<span style="font-size:10px;color:var(--ink2);background:#fff;padding:1px 6px;border-radius:4px;border:1px solid var(--line)">'+e.ic+' '+(e.date||'')+'</span></div>';
   });
   html+='</div></div>';
   html+='<div id="tl-tip" style="position:fixed;display:none;z-index:50;background:#1a1d23;color:#fff;padding:9px 12px;border-radius:8px;font-size:11.5px;line-height:1.5;max-width:260px;box-shadow:0 4px 16px rgba(0,0,0,.25);pointer-events:none"></div>';
@@ -756,7 +767,9 @@ function renderTL(a){
 function bindTLHover(){
   const track=document.getElementById('tl-track'),cursor=document.getElementById('tl-cursor'),tip=document.getElementById('tl-tip');
   if(!track)return;
-  function showTip(el,ev){
+  const items=[...track.querySelectorAll('.tl-bar,.tl-mark')];
+  let active=null;
+  function render(el,ev){
     const d=JSON.parse(decodeURIComponent(el.dataset.det));
     let h='<div style="font-weight:700;margin-bottom:3px">'+d.title+'</div>';
     if(d.sub)h+='<div style="color:#cdd3da">'+d.sub+'</div>';
@@ -765,16 +778,24 @@ function bindTLHover(){
     if(d.hazard)h+='<div style="color:#6ee7b7;font-size:10px;margin-top:3px">● 유해·부담 직종</div>';
     tip.innerHTML=h;tip.style.display='block';
     tip.style.left=Math.min(ev.clientX+14,window.innerWidth-270)+'px';
-    tip.style.top=(ev.clientY+14)+'px';
-    const tr=track.getBoundingClientRect(),er=el.getBoundingClientRect();
-    const cx=(el.classList.contains('tl-mark'))?(er.left+er.width/2):er.left;
-    cursor.style.left=(cx-tr.left)+'px';cursor.style.opacity='.6';
+    tip.style.top=Math.min(ev.clientY+14,window.innerHeight-120)+'px';
+    const mid=parseFloat(el.dataset.mid);
+    cursor.style.left=mid+'%';cursor.style.opacity='.55';
   }
-  track.querySelectorAll('.tl-bar,.tl-mark').forEach(el=>{
-    el.addEventListener('mousemove',e=>showTip(el,e));
-    el.addEventListener('mouseenter',()=>{el.style.borderColor='var(--accent)';});
-    el.addEventListener('mouseleave',()=>{tip.style.display='none';cursor.style.opacity='0';el.style.borderColor='transparent';});
+  // 트랙 전체에 하나의 mousemove → 끊김 없음. 마우스 아래 요소를 찾아 처리.
+  track.addEventListener('mousemove',ev=>{
+    const t=ev.target.closest('.tl-bar,.tl-mark');
+    if(t){
+      if(active&&active!==t)active.style.borderColor='transparent';
+      active=t;t.style.borderColor='var(--accent)';
+      render(t,ev);
+    } else if(active){
+      active.style.borderColor='transparent';active=null;tip.style.display='none';cursor.style.opacity='0';
+    } else {
+      tip.style.display='none';cursor.style.opacity='0';
+    }
   });
+  track.addEventListener('mouseleave',()=>{if(active){active.style.borderColor='transparent';active=null;}tip.style.display='none';cursor.style.opacity='0';});
 }
 document.getElementById('tl-demo').onclick=loadDemo;
 // 질병구분 드롭다운 채우기(타임라인용)
