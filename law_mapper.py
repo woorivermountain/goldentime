@@ -6,8 +6,8 @@
 
 설계 원칙:
   - AI는 '판정'하지 않는다. 별표3 요건과 입력의 '겹침'을 근거와 함께 후보로 제시.
-  - 자문위 결정 전에 예측을 '봉인'(타임스탬프 기록)하여 독립성을 보장.
-  - 봉인된 예측 ↔ 자문위 결정을 사후 '대조'하여 일치=근거기록 / 불일치=재조사 쟁점.
+  - 자문의사 결정 전에 예측을 '봉인'(타임스탬프 기록)하여 독립성을 보장.
+  - 봉인된 예측 ↔ 자문의사 결정을 사후 '대조'하여 일치=근거기록 / 불일치=재해조사 쟁점.
 
 출처: 산업재해보상보험법 시행령 별표3(제34조제3항 관련).
       ※ 현재는 핵심 요건을 내장. 법령 API(국가법령정보 OC) 연동 시 동적 로딩으로 교체 가능.
@@ -149,7 +149,7 @@ def predict(case_text, exposure="", job="", years=None):
 
 
 def seal_prediction(case_id, case_text, predictions):
-    """예측 봉인: 타임스탬프 + 해시로 '자문위보다 먼저, 독립적으로' 생성됐음을 기록."""
+    """예측 봉인: 타임스탬프 + 해시로 '자문의사보다 먼저, 독립적으로' 생성됐음을 기록."""
     ts = datetime.now(timezone.utc).isoformat()
     payload = json.dumps({"case_id": case_id, "case_text": case_text,
                           "predictions": predictions, "sealed_at": ts},
@@ -160,7 +160,7 @@ def seal_prediction(case_id, case_text, predictions):
 
 
 def compare(sealed, advisory_disease):
-    """봉인된 AI 예측 ↔ 자문위 결정 대조. 둘 다 질병구분(kindc) 기준으로 비교."""
+    """봉인된 AI 예측 ↔ 자문의사 결정 대조. 둘 다 질병구분(kindc) 기준으로 비교."""
     preds = sealed["predictions"]
     # 예측의 kindc(판정서 분류값) 기준. 없으면 disease로 폴백.
     def pk(p):
@@ -175,7 +175,7 @@ def compare(sealed, advisory_disease):
         verdict = "불일치"
     focus = []
     if verdict != "일치":
-        # 자문위가 고른 분류의 요건을 KB에서 역으로 찾아 제시
+        # 자문의사가 고른 분류의 요건을 KB에서 역으로 찾아 제시
         adv_kb = None
         for name, kb in DISEASE_KB.items():
             if KB_TO_KINDC.get(name) == advisory_disease or name == advisory_disease:
@@ -193,7 +193,7 @@ def compare(sealed, advisory_disease):
 
 
 if __name__ == "__main__":
-    # 데모: 일상어 입력 → 예측 → 봉인 → 자문위 입력 → 대조
+    # 데모: 일상어 입력 → 예측 → 봉인 → 자문의사 입력 → 대조
     txt = "귀가 먹먹하고 시끄러운 공장에서 오래 일했다"
     preds = predict(txt, exposure="소음", job="프레스공", years=15)
     print("[예측]")
@@ -201,7 +201,7 @@ if __name__ == "__main__":
         print(f"  {p['disease']} (신뢰도 {p['confidence']}) · {p['ref']} · 신호 {p['matched_signals']}")
     sealed = seal_prediction("CASE-001", txt, preds)
     print(f"\n[봉인] {sealed['sealed_at']} · hash={sealed['seal_hash']}")
-    print("\n[자문위 입력] 소음성난청")
+    print("\n[자문의사 입력] 소음성난청")
     print("[대조]", json.dumps(compare(sealed, "소음성난청"), ensure_ascii=False))
-    print("\n[자문위가 다르게 본 경우] 이명(→ 후보 밖)")
+    print("\n[자문의사가 다르게 본 경우] 이명(→ 후보 밖)")
     print("[대조]", json.dumps(compare(sealed, "메니에르병"), ensure_ascii=False))

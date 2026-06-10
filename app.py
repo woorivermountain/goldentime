@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-산재 재조사 가이드라인 — 백엔드 서버 (stdlib만, Flask/pip 불필요)
+산재 재해조사 가이드라인 — 백엔드 서버 (stdlib만, Flask/pip 불필요)
 ==================================================================
 역할: 대시보드(브라우저)는 data.go.kr를 직접 못 부르므로(CORS·키 보안),
       이 서버가 키를 들고 공공데이터 API를 호출 → 추출 → 가이드라인을 만들어 돌려준다.
@@ -346,11 +346,19 @@ def rank_similar(case, records, topn=3):
             weight += 0.2
         if matched > 0:
             pct = round(matched / denom * 100)
-            scored.append((weight, pct, matched, reasons, p))
+            # accnum 등에서 연도 추출(시간 정렬용). 없으면 0.
+            ynum = 0
+            m = re.search(r"(20\d{2}|19\d{2})", str(p.get("case_no") or ""))
+            if m:
+                ynum = int(m.group(1))
+            scored.append((weight, pct, ynum, matched, reasons, p))
+    # 1차: 유사도(weight·pct)로 후보 추림 → 2차: 그 안에서 최근(연도 큰) 순
     scored.sort(key=lambda x: (-x[0], -x[1]))
+    top = scored[:max(topn * 2, topn)]            # 유사도 상위 후보 풀
+    top.sort(key=lambda x: (-x[2], -x[0]))        # 시간순(최근 먼저), 동시간이면 유사도
 
     out = []
-    for weight, pct, matched, reasons, p in scored[:topn]:
+    for weight, pct, ynum, matched, reasons, p in top[:topn]:
         out.append({
             "case_no": p["case_no"], "result": p["result"], "verdict": p.get("verdict"),
             "job": p.get("job_type"), "years": p.get("exposure_years"),
@@ -358,6 +366,7 @@ def rank_similar(case, records, topn=3):
             "docs": p.get("decisive_docs") or [], "sint": p.get("sintcheong"),
             "noncontent": p.get("noncontent") or p.get("excerpt") or "",
             "match_pct": pct, "matched": matched, "axes_total": denom, "reasons": reasons,
+            "year": ynum or None,
         })
     return out
 
@@ -468,7 +477,7 @@ def build_guideline_jbp(case, records):
                       f" 이 사건의 핵심 불인정 사유가 될 수 있음. ▶ 대응: {action}")
     # (4) 보류 경고
     if hold:
-        cp.append(f"【재조사 유형 경고】 유사 조건에서 보류·판정위이송이 {len(hold)}건 발생 — 1차 자료만으로 판단이 어려웠던 유형."
+        cp.append(f"【재해조사 유형 경고】 유사 조건에서 보류·판정위이송이 {len(hold)}건 발생 — 1차 자료만으로 판단이 어려웠던 유형."
                   f" 위 자료들을 상정 전에 선제 확보하면 추가 지연을 줄일 수 있음.")
     if not cp:
         cp.append("이 조건의 표본이 적어 그룹 비교가 어렵습니다. 질병구분 또는 필터 범위를 넓혀 보세요.")
@@ -703,7 +712,7 @@ class H(BaseHTTPRequestHandler):
 def main():
     port = int(os.environ.get("PORT", 8000))
     mode = "라이브(실제 공공데이터)" if SERVICE_KEY else "데모(샘플 원문에 동일 추출 적용)"
-    print(f"\n  산재 재조사 가이드라인 서버")
+    print(f"\n  산재 재해조사 가이드라인 서버")
     print(f"  모드: {mode}")
     print(f"  → 포트 {port} (로컬: http://localhost:{port}, 종료: Ctrl+C)\n")
     ThreadingHTTPServer(("0.0.0.0", port), H).serve_forever()
