@@ -268,7 +268,16 @@ def build_tree_jbp(case, records):
         groups.setdefault(keyfn(p), []).append(p)
 
     children = []
+    def _yr(p):
+        import re as _re
+        s = str(p.get("case_no") or "")
+        m = _re.search(r"(20\d{2}|19\d{2})", s)
+        y = int(m.group(1)) if m else 0
+        nums = _re.findall(r"\d+", s)
+        seq = int(nums[-1]) if nums else 0   # 같은 연도 내 일련번호
+        return (y, seq)
     for grp, ps in sorted(groups.items(), key=lambda kv: -len(kv[1])):
+        ps=sorted(ps, key=_yr, reverse=True)   # 최신(번호 큰) 것이 맨 위로
         acc = sum(1 for p in ps if p["result"] == "인정")
         rej = sum(1 for p in ps if p["result"] == "불인정")
         hold = sum(1 for p in ps if p["result"] == "보류")
@@ -490,6 +499,7 @@ def build_guideline_jbp(case, records):
     # 담당자용: 사업장 사실조회 항목(질병별)
     dz = case.get("disease_group", "")
     survey = _site_survey_items(dz)
+    advisory = _advisory_docs(dz)
     # 담당자용: 보완 필요 자료 체크리스트(가이드라인 cp의 ▶ 부분 모음)
     todos = []
     for c in cp:
@@ -499,7 +509,7 @@ def build_guideline_jbp(case, records):
     return {
         "acc": na, "rej": nr, "hold": len(hold), "rate": rate,
         "keyDocs": key_docs, "top_burden": top_burden, "cp": cp, "lead": lead,
-        "survey": survey, "todos": todos,
+        "survey": survey, "todos": todos, "advisory": advisory,
     }
 
 
@@ -570,6 +580,24 @@ def _site_survey_items(disease_group):
     ])
 
 
+# 질병별 자문의사 소견 의뢰 시 첨부할 의학 자료
+ADVISORY_DOCS = {
+    "근골격계질환(척추질환 제외)": ["MRI·X-ray 등 영상검사 판독지", "근전도·신경전도 검사 결과", "기왕증·퇴행성 변화 유무 소견", "작업동작 분석자료"],
+    "근골격계질환 (척추질환)": ["요추·경추 MRI 판독지", "추간판 상태 영상소견", "퇴행성 변화 정도 소견", "중량물 취급 작업분석"],
+    "호흡기질환(천식 포함)": ["흉부 CT·X-ray 판독지", "폐기능검사(PFT) 결과", "기관지유발시험 결과(천식 시)", "작업환경측정 결과", "흡연력 등 기왕력"],
+    "진폐": ["흉부 X-ray 진폐 병형 판정", "흉부 CT 소견", "폐기능검사 결과", "분진노출 작업력"],
+    "난청": ["순음청력검사(반복) 결과", "청성뇌간반응(ABR) 검사", "이과적 진찰 소견", "소음노출 작업력·작업환경측정"],
+    "악성신생물(직업성 암 포함)": ["조직검사·병리 결과", "발암물질 노출력", "작업환경측정 결과", "잠복기 적합성 소견"],
+    "뇌혈관질환": ["뇌영상(CT/MRI) 소견", "발병 전 근무시간·업무량 자료", "기저질환(고혈압 등) 유무", "발병 경위 의무기록"],
+    "심장질환": ["심전도·심초음파 결과", "관상동맥 영상 소견", "발병 전 근무시간 자료", "기저질환 유무"],
+    "정신질환": ["정신건강의학과 진단서·치료기록", "발병 경위 진술", "직장 내 사건 관련 자료", "기왕 정신과력"],
+}
+
+
+def _advisory_docs(disease_group):
+    return ADVISORY_DOCS.get(disease_group, ["해당 부위·질환의 영상·검사 결과", "기왕력·기저질환 소견", "작업력 및 노출자료"])
+
+
 def _match_part(rec, parts):
     syn = {"허리": ["허리", "요추", "요부"], "목": ["목", "경추"], "어깨": ["어깨", "견관절"],
            "무릎": ["무릎", "슬관절"], "손/손목": ["수부", "수근관", "손목"], "팔꿈치": ["팔꿈치", "주관절"],
@@ -610,7 +638,7 @@ def _match_burden(rec, burdens):
 def make_guideline_jbp(case):
     """판정서 기반 가이드라인 (메인 경로). SERVICE_KEY 필요."""
     kindc = case.get("kindc") or case.get("disease_group")
-    records, total = jbp.fetch_body(SERVICE_KEY, kindc=kindc, rows=120)
+    records, total = jbp.fetch_body_recent(SERVICE_KEY, kindc=kindc, want=120)
 
     # ── 선택한 부위·부담요인으로 필터 ──
     sel_parts = [x for x in (case.get("body_part") or "").split(",") if x]
@@ -623,7 +651,7 @@ def make_guideline_jbp(case):
     # 필터 결과가 너무 적으면(5건 미만) 필터 해제하고 안내
     filter_note = None
     if (sel_parts or sel_burden) and len(records) < 5:
-        records, _ = jbp.fetch_body(SERVICE_KEY, kindc=kindc, rows=120)
+        records, _ = jbp.fetch_body_recent(SERVICE_KEY, kindc=kindc, want=120)
         filter_note = "선택 조건에 맞는 판정서가 적어 전체 결과를 표시합니다. 조건을 줄여보세요."
     elif sel_parts or sel_burden:
         filter_note = f"필터 적용: {base_n}건 → {len(records)}건 (부위: {', '.join(sel_parts) or '—'} · 부담요인: {', '.join(sel_burden) or '—'})"
@@ -750,7 +778,7 @@ class H(BaseHTTPRequestHandler):
                 # 판정서에서 실제 타임라인 케이스 추출
                 kindc = body.get("kindc") or "호흡기질환(천식 포함)"
                 if SERVICE_KEY:
-                    recs, total = jbp.fetch_body(SERVICE_KEY, kindc=kindc, rows=60)
+                    recs, total = jbp.fetch_body_recent(SERVICE_KEY, kindc=kindc, want=60)
                 else:
                     recs = []
                 cases = timeline.cases_from_records(recs, limit=8)
@@ -766,7 +794,7 @@ class H(BaseHTTPRequestHandler):
                     real = []
                     if SERVICE_KEY:
                         try:
-                            recs, _ = jbp.fetch_body(SERVICE_KEY, kindc=dz, rows=40)
+                            recs, _ = jbp.fetch_body_recent(SERVICE_KEY, kindc=dz, want=40)
                             real = timeline.cases_from_records(recs, limit=1)
                         except Exception:
                             real = []

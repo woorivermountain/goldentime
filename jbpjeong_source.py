@@ -112,11 +112,67 @@ def fetch_body(service_key, kindc=None, kinda=None, page=1, rows=50, cq=None):
     total = root.findtext(".//totalCount")
     result_code = root.findtext(".//resultCode") or ""
     out = [normalize({c.tag:(c.text or "") for c in it}) for it in root.findall(".//item")]
-    # 마지막 호출의 메타데이터를 모듈 전역에 기록(신뢰성 증거용)
     global LAST_FETCH
     LAST_FETCH = {"result_code": result_code, "total": total, "rows": len(out),
                   "op": OP_BODY, "kindc": kindc or "", "at": _now_str()}
     return out, total
+
+
+def _fetch_page(service_key, kindc, kinda, page, rows, cq):
+    params = {"serviceKey": service_key, "pageNo": page, "numOfRows": rows}
+    if kindc: params["kindc"] = kindc
+    if kinda: params["kinda"] = kinda
+    if cq: params["cq"] = cq
+    url = f"{SVC}/{OP_BODY}?" + urllib.parse.urlencode(params)
+    txt = urllib.request.urlopen(urllib.request.Request(url, headers={"User-Agent":"sanjae/1.0"}), timeout=30).read().decode("utf-8","replace")
+    root = ET.fromstring(txt)
+    total = root.findtext(".//totalCount")
+    rc = root.findtext(".//resultCode") or ""
+    items = [normalize({c.tag:(c.text or "") for c in it}) for it in root.findall(".//item")]
+    return items, int(total or 0), rc
+
+
+def fetch_body_recent(service_key, kindc=None, kinda=None, want=60, cq=None):
+    """최근 판정서 우선 수집.
+    API에 정렬 옵션이 없어 앞 페이지엔 과거 접수분이 몰리므로,
+    마지막 페이지부터 역순으로 모은 뒤 접수번호(연도) 기준 내림차순 정렬한다.
+    """
+    import re as _re
+    rows = 100
+    # 1) 첫 호출로 전체 건수 파악
+    first, total, rc = _fetch_page(service_key, kindc, kinda, 1, rows, cq)
+    global LAST_FETCH
+    LAST_FETCH = {"result_code": rc, "total": str(total), "rows": 0,
+                  "op": OP_BODY, "kindc": kindc or "", "at": _now_str()}
+    if total <= 0:
+        return [], 0
+    last_page = (total + rows - 1) // rows
+    collected = []
+    seen = set()
+    # 2) 마지막 페이지부터 역순으로 want건 채울 때까지
+    p = last_page
+    pages_tried = 0
+    while p >= 1 and len(collected) < want and pages_tried < 8:
+        items, _, _ = _fetch_page(service_key, kindc, kinda, p, rows, cq)
+        for it in items:
+            k = it.get("case_no") or id(it)
+            if k in seen:
+                continue
+            seen.add(k)
+            collected.append(it)
+        pages_tried += 1
+        p -= 1
+    # 3) 접수번호의 연도+번호로 내림차순(최근 먼저)
+    def _key(it):
+        s = str(it.get("case_no") or "")
+        m = _re.search(r"(20\d{2}|19\d{2})", s)
+        y = int(m.group(1)) if m else 0
+        n = _re.findall(r"\d+", s)
+        seq = int(n[-1]) if n else 0
+        return (y, seq)
+    collected.sort(key=_key, reverse=True)
+    LAST_FETCH["rows"] = len(collected)
+    return collected[:max(want, 0)], total
 
 LAST_FETCH = {}
 def _now_str():

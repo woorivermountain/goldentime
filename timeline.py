@@ -188,6 +188,22 @@ def from_verdict(rec):
         medical.append({"date": m.group(1) + ("-" + (m.group(2) or "1").zfill(2)),
                         "hospital": m.group(3), "dx": "", "note": "본문 기재"})
 
+    # 추출 실패 필드는 '미상'으로(빈칸/오추출보다 정직)
+    BAD_SITE = ("근무", "종사", "재직", "하였", "당시", "기간", "이후", "에서", "부터")
+    for cr in careers:
+        st = cr.get("site") or ""
+        if (not st) or any(b in st for b in BAD_SITE) or len(st) < 2:
+            cr["site"] = "미상"
+        if not cr.get("job"):
+            cr["job"] = job or "미상"
+        if not cr.get("insure"):
+            cr["insure"] = "미상"
+    for md in medical:
+        if not md.get("hospital"):
+            md["hospital"] = "미상"
+        if not md.get("dx"):
+            md["dx"] = "미상"
+
     return {
         "source_case": rec.get("case_no") or rec.get("accnum") or "",
         "source_result": rec.get("verdict") or rec.get("result") or "",
@@ -199,12 +215,28 @@ def from_verdict(rec):
 
 
 def cases_from_records(records, limit=8):
-    """여러 판정서에서 직력 정보가 있는 케이스만 추려 반환."""
+    """여러 판정서에서 '사업장별 직력(careers)이 실제로 추출된' 케이스만 반환.
+    careers가 있어야 타임라인을 그릴 수 있으므로 그것을 필수 조건으로 한다."""
     out = []
     for r in records:
         c = from_verdict(r)
-        if c["careers"] or c["stated_years"]:
-            out.append(c)
+        if not c["careers"]:
+            continue  # 사업장별 기간이 없으면 타임라인을 못 그리므로 제외
+        # 진술 연수가 없으면 careers 합산으로 채움
+        if not c.get("stated_years"):
+            tot = 0
+            for cr in c["careers"]:
+                a, b = _parse_ym(cr.get("start")), _parse_ym(cr.get("end"))
+                tot += _months(a, b)
+            if tot > 0:
+                c["stated_years"] = round(tot / 12, 1)
+        # 발병시점이 없으면 마지막 직력 종료 또는 마지막 의료기록으로 추정
+        if not c.get("onset"):
+            if c.get("medical"):
+                c["onset"] = c["medical"][-1].get("date")
+            elif c["careers"]:
+                c["onset"] = c["careers"][0].get("end")
+        out.append(c)
         if len(out) >= limit:
             break
     return out

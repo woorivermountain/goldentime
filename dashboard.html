@@ -296,6 +296,7 @@
           <div class="frow"><label>질병구분</label><input id="tl-disease" placeholder="호흡기질환(천식 포함)"></div>
           <div class="frow"><label>본인 진술 직력(년)</label><input id="tl-stated" type="number" placeholder="26"></div>
           <div class="frow"><label>발병(진단) 시점</label><input id="tl-onset" placeholder="2024-08"></div>
+          <div class="frow"><label>산재 신청 접수일</label><input id="tl-filed" type="date"></div>
         </div>
         <div class="tl-card">
           <p class="ct">전산 직력 (4대보험 경력산정내역)</p>
@@ -323,6 +324,7 @@
       <div><h1>판정위 상정 보조 보고서</h1><p>1·2단계 분석 결과를 종합합니다. 최종 판정은 업무상질병판정위원회 권한입니다.</p></div>
       <div style="margin-left:auto;display:flex;gap:8px">
         <button class="btn2" id="rpt-build" style="margin:0">보고서 생성</button>
+        <button class="btn2" id="rpt-letter" style="margin:0;background:var(--accent)">사업장 사실조회 공문</button>
         <button class="btn2" id="rpt-print" style="margin:0;background:#475569">인쇄 / PDF 저장</button>
       </div>
     </div>
@@ -615,6 +617,7 @@ function renderGuide(res){const g=res.guideline;
  const cpHtml=g.cp.map(c=>{const parts=c.split('▶');const head=parts[0].trim();const tip=parts[1]?parts[1].trim():'';return '<li>'+head+(tip?'<div style="margin-top:5px;padding:6px 9px;background:var(--soft);border-radius:6px;font-size:11.5px;color:var(--accent)"><b>▶</b> '+tip+'</div>':'')+'</li>';}).join('');
  document.getElementById('guide').innerHTML='<p class="excerpt">'+g.lead+'</p><div class="stat"><div class="s ok"><div class="n">'+g.acc+'</div><div class="l">인정</div></div><div class="s no"><div class="n">'+g.rej+'</div><div class="l">불인정</div></div><div class="s hold"><div class="n">'+g.hold+'</div><div class="l">보류/이송</div></div></div><div class="gt">보완 체크포인트 (인정 vs 불인정 비교 기반)</div><ul class="glist">'+cpHtml+'</ul>'+
    (g.survey&&g.survey.length?'<div class="gt">🏭 사업장 사실조회 항목 (담당자 조회용)</div><ul class="glist">'+g.survey.map(x=>'<li>'+x+'</li>').join('')+'</ul>':'')+
+   (g.advisory&&g.advisory.length?'<div class="gt">🩺 자문의사 소견 의뢰 시 첨부자료</div><ul class="glist">'+g.advisory.map(x=>'<li>'+x+'</li>').join('')+'</ul>':'')+
    (g.keyDocs&&g.keyDocs.length?'<div class="gt">인정 판정서 빈출 자료</div>'+g.keyDocs.slice(0,6).map(d=>'<span class="chip gray">'+d+'</span>').join(''):'');}
 function renderProv(res){
   const e=res.evidence;
@@ -718,6 +721,19 @@ function renderTL(a){
   let html='<div class="sumbar"><div class="sb"><div class="n">'+(s.official_years||0)+'</div><div class="l">4대보험 직력(년)</div></div>'+
     '<div class="sb"><div class="n">'+(s.hazard_years||0)+'</div><div class="l">유해업무 노출(년)</div></div>'+
     '<div class="sb"><div class="n">'+(s.stated_years||'—')+'</div><div class="l">본인 진술(년)</div></div></div>';
+  // 처리 기한 관리 (접수일 기준)
+  const filed=gv('tl-filed');
+  if(filed){
+    const fd=new Date(filed),now=new Date();
+    const elapsed=Math.floor((now-fd)/(1000*60*60*24));
+    const TARGET=120;const remain=TARGET-elapsed;
+    const over=elapsed>TARGET;
+    const c1=over?'var(--no)':(remain<=30?'var(--hold)':'var(--accent)');
+    html+='<div style="display:flex;gap:10px;margin-bottom:12px;flex-wrap:wrap">'+
+      '<div style="flex:1;min-width:120px;background:var(--surface);border:1px solid var(--line2);border-radius:9px;padding:10px 12px"><div style="font-size:10px;color:var(--ink3)">접수 경과</div><div style="font-size:18px;font-weight:800;color:'+c1+'">'+elapsed+'일</div><div style="font-size:9.5px;color:var(--ink3)">접수 '+filed+'</div></div>'+
+      '<div style="flex:1;min-width:120px;background:var(--surface);border:1px solid var(--line2);border-radius:9px;padding:10px 12px"><div style="font-size:10px;color:var(--ink3)">목표(120일)까지</div><div style="font-size:18px;font-weight:800;color:'+c1+'">'+(over?('초과 '+(elapsed-TARGET)+'일'):(remain+'일'))+'</div><div style="font-size:9.5px;color:var(--ink3)">정부 목표 처리기한</div></div>'+
+      '<div style="flex:2;min-width:160px;background:var(--surface);border:1px solid var(--line2);border-radius:9px;padding:10px 12px"><div style="font-size:10px;color:var(--ink3);margin-bottom:5px">진행률 (목표 120일 대비)</div><div style="height:9px;background:var(--line2);border-radius:5px;overflow:hidden"><div style="height:100%;width:'+Math.min(elapsed/TARGET*100,100)+'%;background:'+c1+'"></div></div>'+(over?'<div style="font-size:10px;color:var(--no);margin-top:5px;font-weight:700">⚠ 목표 기한 초과 — 우선 처리 검토</div>':'<div style="font-size:10px;color:var(--ink3);margin-top:5px">평균 인정 소요 227일 · 정부 목표 120일</div>')+'</div></div>';
+  }
   html+='<div style="display:flex;gap:14px;flex-wrap:wrap;font-size:11px;color:var(--ink2);margin-bottom:12px">'+
     '<span><span style="display:inline-block;width:14px;height:10px;background:var(--accent2);border-radius:2px;vertical-align:middle"></span> 유해·부담 직종</span>'+
     '<span><span style="display:inline-block;width:14px;height:10px;background:var(--line2);border-radius:2px;vertical-align:middle"></span> 일반 직종</span>'+
@@ -894,6 +910,11 @@ function buildReport(){
       h+='<div class="rsec2"><div class="h">3-1. 사업장 사실조회 권장 항목</div><ul class="rlist">'+
          g.survey.map(x=>'<li>'+x+'</li>').join('')+'</ul></div>';
     }
+    // 3-2. 자문의사 소견 의뢰 자료
+    if(g.advisory&&g.advisory.length){
+      h+='<div class="rsec2"><div class="h">3-2. 자문의사 소견 의뢰 시 첨부자료</div><ul class="rlist">'+
+         g.advisory.map(x=>'<li>'+x+'</li>').join('')+'</ul></div>';
+    }
   }
 
   // 4. 사실관계 쟁점 (2단계)
@@ -918,6 +939,30 @@ function buildReport(){
 }
 document.getElementById('rpt-build').onclick=buildReport;
 document.getElementById('rpt-print').onclick=()=>window.print();
+// 사업장 사실조회 공문 초안 생성
+document.getElementById('rpt-letter').onclick=()=>{
+  if(!RES||!RES.guideline){alert('① 유사 판정서 분석을 먼저 실행해 주세요. (질병구분에 맞는 조회 항목을 가져옵니다)');return;}
+  const g=RES.guideline;const dz=(RES.tree&&RES.tree.label)||'해당 상병';
+  const today=new Date().toISOString().slice(0,10);
+  const items=(g.survey||[]).map((x,i)=>'      '+(i+1)+'. '+x).join('\n');
+  const body='[사업장 사실조회 요청 공문 — 초안]\n\n'+
+    '문서번호: 근로복지공단         호\n'+
+    '시행일자: '+today+'\n'+
+    '수    신: (사업장명) 귀중\n'+
+    '제    목: 업무상질병 재해조사 관련 사실조회 요청\n\n'+
+    '1. 귀 사업장의 무궁한 발전을 기원합니다.\n'+
+    '2. 당 공단은 귀 사업장 소속(전 소속) 근로자의 「'+dz+'」 관련 업무상질병 여부를 조사 중입니다.\n'+
+    '3. 공정한 재해조사를 위하여 아래 사항에 대한 사실조회를 요청하오니, 관련 자료와 함께 회신하여 주시기 바랍니다.\n\n'+
+    '   - 아     래 -\n\n'+items+'\n\n'+
+    '   ※ 위 항목 관련 증빙자료(작업환경측정 결과, 인사·근태기록 등)를 함께 제출하여 주시기 바랍니다.\n\n'+
+    '붙임: 회신서 양식 1부.  끝.\n\n'+
+    '근로복지공단 ○○지사장';
+  document.getElementById('doc-title').textContent='사업장 사실조회 공문 (초안)';
+  document.getElementById('doc-body').innerHTML='<div style="background:var(--hold-bg);border:1px solid var(--hold-line);border-radius:6px;padding:9px 11px;font-size:11px;color:var(--hold);margin-bottom:12px">※ 자동 생성된 초안입니다. 사업장명·문서번호·세부 항목은 담당자가 사건에 맞게 수정하여 사용하세요.</div>'+
+    '<textarea style="width:100%;height:420px;font-size:12px;font-family:inherit;line-height:1.6;padding:12px;border:1px solid var(--line2);border-radius:8px;box-sizing:border-box" readonly>'+body+'</textarea>'+
+    '<button class="btn" style="margin-top:10px" onclick="navigator.clipboard.writeText(this.previousElementSibling.value).then(()=>{this.textContent=\'✓ 복사됨\'})">공문 내용 복사</button>';
+  document.getElementById('docmodal').style.display='flex';
+};
 careerRow();medRow();  // 초기 빈 행 하나씩
 document.getElementById('docmodal').addEventListener('click',e=>{if(e.target.id==='docmodal')e.currentTarget.style.display='none';});
 fetch('/api/status').then(r=>r.json()).then(d=>setMode(d.mode)).catch(()=>setMode('demo'));
