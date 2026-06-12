@@ -244,23 +244,20 @@ def cases_from_records(records, limit=8):
 
 # ── 26년 용접공(울산) 폐질환 시나리오 예시 ──
 def demo_payload():
+    # CASE 3 — FRP 선박 건조 노동자의 원발성 폐암 (발표 데모)
     return {
-        "birth": "1962-05", "onset": "2024-08",
-        "disease": "호흡기질환(천식 포함)",
-        "hazard_jobs": ["용접원"],
-        "stated_years": 26,
+        "birth": "1968-03", "onset": "2024-05",
+        "disease": "악성신생물(직업성 암 포함)",
+        "hazard_jobs": ["선박건조공"],
+        "stated_years": 22,
         "careers": [
-            {"start": "2019-06", "end": "2025-02", "site": "OO조선", "job": "용접원", "insure": "고용보험", "hazard": True},
-            {"start": "2018-01", "end": "2018-02", "site": "A중공업", "job": "용접원", "insure": "고용보험", "hazard": True},
-            {"start": "2017-06", "end": "2017-12", "site": "A중공업", "job": "용접원", "insure": "고용보험", "hazard": True},
-            {"start": "2001-02", "end": "2013-10", "site": "현대중공업", "job": "용접원", "insure": "산재보험", "hazard": True},
-            {"start": "1998-04", "end": "2001-07", "site": "B기업", "job": "용접보조", "insure": "고용보험", "hazard": True},
-            {"start": "1996-12", "end": "1998-04", "site": "C조선", "job": "용접원", "insure": "고용보험", "hazard": True},
+            {"start": "2002-03", "end": "2013-12", "site": "OO조선", "job": "FRP 적층공", "insure": "산재보험", "hazard": True},
+            {"start": "2014-01", "end": "2024-02", "site": "OO중공업", "job": "선박 퍼티·연마", "insure": "고용보험", "hazard": True},
         ],
         "medical": [
-            {"date": "2013-05", "hospital": "울산OO병원", "dx": "기침·호흡곤란 호소", "note": "현대중공업 재직 중 최초 호흡기 증상"},
-            {"date": "2020-11", "hospital": "OO대학병원", "dx": "만성폐쇄성폐질환 의증", "note": "흉부CT 시행"},
-            {"date": "2024-08", "hospital": "OO대학병원", "dx": "직업성 폐질환 진단", "note": "폐기능검사·작업력 확인"},
+            {"date": "2019-09", "hospital": "울산OO병원", "dx": "기침·흉부 이상소견", "note": "건강검진 중 흉부 결절 발견"},
+            {"date": "2023-11", "hospital": "OO대학병원", "dx": "폐 결절 추적관찰", "note": "흉부CT 시행"},
+            {"date": "2024-05", "hospital": "OO대학병원", "dx": "원발성 폐암 진단", "note": "조직검사·작업력(스티렌·유리섬유) 확인"},
         ],
     }
 

@@ -285,7 +285,7 @@
         <select id="tl-kindc2" style="padding:8px;border:1px solid var(--line2);border-radius:7px;font-size:12px;font-family:inherit"></select>
         <button class="btn2" id="tl-gallery" style="margin:0;background:var(--accent)">여러 질병 사례 모아보기</button>
         <button class="btn2" id="tl-load" style="margin:0">판정서에서 실제 케이스 불러오기</button>
-        <button class="btn2" id="tl-demo" style="margin:0;background:#475569">데모 예시</button>
+        <button class="btn2" id="tl-demo" style="margin:0;background:#475569">데모: 폐암 사례 (CASE 3)</button>
       </div>
     </div>
     <div id="tl-caselist" style="display:none;padding:10px 22px;background:var(--surface2);border-bottom:1px solid var(--line);font-size:12px"></div>
@@ -463,7 +463,8 @@
 let PARTS=["허리","목","어깨","무릎","손/손목","팔꿈치"];
 let BURDENS=["중량물","반복동작","진동","부적절자세","장시간"];
 let FILTERS={}, DEFAULT_FILTER={axis1_label:"직종",axis1:[],axis2_label:"부담요인",axis2:["중량물","반복동작","장시간"]};
-const EXAMPLES=["용접 일을 26년 했는데 기침이 멈추지 않고 숨이 차다",
+const EXAMPLES=["FRP 선박 건조 작업으로 적층·퍼티·연마를 하며 스티렌과 유리섬유에 지속 노출되었고 밀폐된 공간에서 작업한 뒤 원발성 폐암 진단을 받았다",
+ "용접 일을 26년 했는데 기침이 멈추지 않고 숨이 차다",
  "허리가 아프고 무거운 걸 많이 드는 일을 오래 했다",
  "어깨가 안 올라가고 팔을 반복해서 쓰는 작업을 했다",
  "손이 저리고 진동공구를 오래 썼다",
