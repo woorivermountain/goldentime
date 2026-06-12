@@ -603,8 +603,21 @@ function selectLeaf(n){document.getElementById('det-title').textContent='판정�
  const cls=n.result==='인정'?'ok':n.result==='불인정'?'no':'hold';
  document.getElementById('det').innerHTML='<div class="kv"><span class="k">심의결과</span><span class="v"><span class="badge '+cls+'">'+(n.verdict||n.result)+'</span></span></div><div class="kv"><span class="k">직종</span><span class="v" style="font-size:11px">'+(n.job||'—')+'</span></div>'+(n.industry?'<div class="kv"><span class="k">업종</span><span class="v" style="font-size:11px">'+n.industry+'</span></div>':'')+(n.years!=null?'<div class="kv"><span class="k">근무기간</span><span class="v">'+n.years+'년</span></div>':'')+'<div class="gt">신체부위</div>'+((n.body_parts||[]).map(x=>'<span class="chip">'+x+'</span>').join('')||'—')+'<div class="gt">부담요인</div>'+((n.burden||[]).map(x=>'<span class="chip">'+x+'</span>').join('')||'—')+'<div class="gt">결정 자료</div>'+((n.docs||[]).map(x=>'<span class="chip gray">'+x+'</span>').join('')||'—')+(n.sint?'<div class="gt">신청내용 발췌</div><div class="excerpt">'+n.sint+'</div>':'')+'<div class="gt">원본 판정서</div><button class="docbtn" onclick="showDocAt('+regDoc(n.label,n.verdict||n.result,n.noncontent||n.excerpt||'')+')">📄 이 판정서 내용 보기</button>';}
 var DOCSTORE=[];
-function showDocAt(i){const d=DOCSTORE[i];if(!d)return;document.getElementById('doc-title').textContent='판정서 '+d.no+' ('+d.v+')';
- document.getElementById('doc-body').innerHTML='<div style="background:var(--hold-bg);border:1px solid var(--hold-line);border-radius:6px;padding:9px 11px;font-size:11px;color:var(--hold);margin-bottom:12px">※ 공공데이터 API는 판정서 본문 일부만 제공합니다. 전문은 아래 원문 링크에서 조회하세요.</div><div style="white-space:pre-wrap">'+((d.nc||'').replace(/</g,'&lt;')||'(본문 미제공)')+'</div><div style="margin-top:14px"><a href="https://www.data.go.kr/data/15110836/openapi.do" target="_blank" style="display:inline-block;font-size:12px;color:var(--accent);border:1px solid var(--accent);border-radius:6px;padding:8px 13px;text-decoration:none">원문 조회 (공공데이터포털) ↗</a></div>';
+function showDocAt(i){const d=DOCSTORE[i];if(!d)return;
+ document.getElementById('doc-title').textContent='판정서 '+d.no+' · '+(d.v||'');
+ const raw=(d.nc||'').trim();
+ let bodyHtml;
+ if(raw.length>0){
+   // 본문을 읽기 좋게: 문장 끝(. 다/음/함 등) 뒤에 줄바꿈을 약하게 넣어 가독성 향상
+   const esc=raw.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+   const pretty=esc.replace(/(다|음|함|됨|임)\.\s*/g,'$1.\n');
+   bodyHtml='<div style="background:var(--soft);border-radius:6px;padding:8px 11px;font-size:11px;color:var(--accent);margin-bottom:10px">공공데이터(질병판정서 조회 서비스)에서 제공한 본문입니다.</div>'+
+     '<div style="white-space:pre-wrap;font-size:13px;line-height:1.7;color:var(--ink)">'+pretty+'</div>';
+ } else {
+   bodyHtml='<div style="background:var(--hold-bg);border:1px solid var(--hold-line);border-radius:8px;padding:16px;font-size:12.5px;color:var(--hold);line-height:1.6;text-align:center">이 판정서는 공공데이터 API가 본문(판정 사유)을 제공하지 않습니다.<br>좌측의 직종·심의결과·결정 자료 등 메타정보를 참고하세요.</div>';
+ }
+ document.getElementById('doc-body').innerHTML=bodyHtml+
+   '<div style="margin-top:14px;font-size:10.5px;color:var(--ink3)">※ 본 서비스는 공공데이터포털 \u2018근로복지공단_질병판정서 조회 서비스\u2019(API)로부터 데이터를 받습니다. API는 개별 판정서의 별도 웹페이지를 제공하지 않으며, 위 본문은 API 응답에 포함된 범위입니다.</div>';
  document.getElementById('docmodal').style.display='flex';}
 function regDoc(no,v,nc){DOCSTORE.push({no:no,v:v,nc:nc||''});return DOCSTORE.length-1;}
 function renderSimilar(sim){
@@ -794,11 +807,12 @@ function renderTL(a){
     const a1=yearOf(e.start),b1=yearOf(e.end);
     const left=X(a1),width=Math.max((b1!=null?X(b1)-X(a1):2),2.5);
     const site=(e.label||'').split('·')[0].trim();
+    const siteShow=site||'(사업장 미확인)';
     const top=i*(rowH+gap);
-    const det=encodeURIComponent(JSON.stringify({title:site,sub:(e.label||'').split('·').slice(1).join('·').trim(),period:(e.start||'')+' ~ '+(e.end||'')+' · '+(e.dur||''),hazard:e.hazard}));
+    const det=encodeURIComponent(JSON.stringify({title:siteShow,sub:(e.label||'').split('·').slice(1).join('·').trim(),period:(e.start||'')+' ~ '+(e.end||'')+' · '+(e.dur||''),hazard:e.hazard}));
     // 막대(글씨 없음) + 막대 왼쪽 끝에 라벨(막대 밖, 작게)
     html+='<div class="tl-bar" data-det="'+det+'" data-mid="'+(left+width/2)+'" style="position:absolute;left:'+left+'%;width:'+width+'%;top:'+(top+4)+'px;height:'+(rowH-8)+'px;background:'+(e.hazard?'var(--accent2)':'var(--line2)')+';border-radius:5px;cursor:pointer;border:1.5px solid transparent;box-sizing:border-box"></div>';
-    html+='<div style="position:absolute;left:'+left+'%;top:'+(top+rowH-3)+'px;font-size:9.5px;color:var(--ink3);white-space:nowrap;pointer-events:none;transform:translateY(-1px)">'+site+'</div>';
+    html+='<div style="position:absolute;left:'+left+'%;top:'+(top+rowH-3)+'px;font-size:9.5px;color:'+(site?'var(--ink3)':'#b9c0c8')+';font-style:'+(site?'normal':'italic')+';white-space:nowrap;pointer-events:none;transform:translateY(-1px)">'+siteShow+'</div>';
   });
   // 의료/발병 마커 — 막대 구역 아래. 점 + 짧은 날짜만
   markers.forEach((e,i)=>{const x=X(yearOf(e.date));const top=chartH2+i*24;

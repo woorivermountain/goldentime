@@ -188,21 +188,34 @@ def from_verdict(rec):
         medical.append({"date": m.group(1) + ("-" + (m.group(2) or "1").zfill(2)),
                         "hospital": m.group(3), "dx": "", "note": "본문 기재"})
 
-    # 추출 실패 필드는 '미상'으로(빈칸/오추출보다 정직)
-    BAD_SITE = ("근무", "종사", "재직", "하였", "당시", "기간", "이후", "에서", "부터")
+    # 잘못 추출된 필드는 '미상'이 아니라 공란으로 — 확실한 것만 채운다
+    # 사업장명으로 부적절한 토큰(동사·조사·인물 지칭 등)이 섞이면 공란 처리
+    BAD_SITE = ("근무", "종사", "재직", "하였", "당시", "기간", "이후", "부터", "에서",
+                "신청", "청구", "재해자", "근로자", "본인", "회사", "사업장", "위", "동안",
+                "이며", "으로", "에게", "에는", "까지", "또는", "그리고")
+    def _bad_site(st):
+        if not st:
+            return True
+        if len(st) < 2:
+            return True
+        if any(b in st for b in BAD_SITE):
+            return True
+        # 한글 동사/형용사 어미로 끝나면 사업장명이 아님
+        if st[-1] in "고는을를이가에서도며나":
+            return True
+        return False
     for cr in careers:
-        st = cr.get("site") or ""
-        if (not st) or any(b in st for b in BAD_SITE) or len(st) < 2:
-            cr["site"] = "미상"
+        if _bad_site(cr.get("site")):
+            cr["site"] = ""          # 공란
         if not cr.get("job"):
-            cr["job"] = job or "미상"
+            cr["job"] = ""           # 공란(직종 못 뽑으면 비움)
         if not cr.get("insure"):
-            cr["insure"] = "미상"
+            cr["insure"] = ""
     for md in medical:
         if not md.get("hospital"):
-            md["hospital"] = "미상"
+            md["hospital"] = ""
         if not md.get("dx"):
-            md["dx"] = "미상"
+            md["dx"] = ""
 
     return {
         "source_case": rec.get("case_no") or rec.get("accnum") or "",
