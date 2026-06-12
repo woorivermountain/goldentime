@@ -161,7 +161,17 @@
   .rissue .lv.high{background:var(--no-bg);color:var(--no)}.rissue .lv.mid{background:var(--hold-bg);color:var(--hold)}.rissue .lv.info{background:var(--soft);color:var(--accent)}
   .rfoot{margin-top:26px;padding-top:14px;border-top:1px solid var(--line2);font-size:11px;color:var(--ink3);line-height:1.6}
   /* 유사 사례 카드 */
-  .simcard{border:1px solid var(--line2);border-radius:10px;padding:11px;margin-bottom:9px;background:var(--surface)}
+  .simcard{border:1px solid var(--line2);border-radius:10px;margin-bottom:8px;background:var(--surface);overflow:hidden}
+  .simsum{display:flex;justify-content:space-between;align-items:center;background:var(--soft);border:1px solid var(--accent);border-radius:9px;padding:9px 12px;margin-bottom:8px}
+  .simsum-l{font-size:12px;color:var(--ink)}
+  .simsum-r{font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .simrow{display:flex;align-items:center;gap:8px;padding:10px 11px;cursor:pointer;transition:background .12s}
+  .simrow:hover{background:var(--soft)}
+  .simrow .rank{flex:none}
+  .simno2{flex:1;font-size:11.5px;color:var(--ink2);font-family:'IBM Plex Mono';white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .simrow .simpct{font-size:13px;font-weight:800;color:var(--accent);white-space:nowrap}
+  .simcaret{color:var(--ink3);font-size:11px;width:14px;text-align:center}
+  .simdetail{display:none;padding:0 11px 11px;border-top:1px solid var(--line)}
   .simhead{display:flex;align-items:center;gap:7px;margin-bottom:6px}
   .simhead .rank{width:18px;height:18px;border-radius:50%;background:var(--accent2);color:#fff;font-size:10px;font-weight:700;display:grid;place-items:center;flex:none}
   .simpct{margin-left:auto;font-size:11px;font-weight:700;color:var(--accent);font-family:'IBM Plex Mono'}
@@ -601,19 +611,38 @@ function renderSimilar(sim){
   const sec=document.getElementById('sim-sec'),box=document.getElementById('sim-box');
   if(!sim||!sim.length){sec.style.display='none';return;}
   sec.style.display='block';
-  box.innerHTML='<div style="font-size:11px;color:var(--ink3);margin-bottom:8px">현재 사건과 비교 요소가 일치하는 판정서를 <b>최근 순</b>으로 보여줍니다. 유사 근거와 당시 결과를 참고하세요.</div>'+
+  // 요약 헤더: Top3의 인정/불인정 분포 한눈에
+  const okN=sim.filter(s=>s.result==='인정').length, noN=sim.filter(s=>s.result==='불인정').length, hoN=sim.length-okN-noN;
+  const topMatch=sim[0]?sim[0].match_pct:0;
+  box.innerHTML='<div class="simsum"><div class="simsum-l">'+
+      '<b>요약</b> · 가장 유사한 판정서 '+sim.length+'건 중 '+
+      '<span style="color:var(--ok)">인정 '+okN+'</span> · <span style="color:var(--no)">불인정 '+noN+'</span>'+(hoN?' · <span style="color:var(--hold)">보류 '+hoN+'</span>':'')+
+      '</div><div class="simsum-r">최고 유사도 '+topMatch+'%</div></div>'+
+   '<div style="font-size:10.5px;color:var(--ink3);margin-bottom:8px">카드를 누르면 유사 근거와 판정서 본문을 볼 수 있습니다. (최근 판정 순)</div>'+
    sim.map((s,i)=>{
     const cls=s.result==='인정'?'ok':s.result==='불인정'?'no':'hold';
-    return '<div class="simcard">'+
-      '<div class="simhead"><span class="rank">'+(i+1)+'</span><span class="badge '+cls+'">'+(s.verdict||s.result)+'</span>'+
-      '<span class="simpct">유사도 '+s.match_pct+'%</span></div>'+
-      '<div style="font-size:10px;color:var(--ink3);margin-bottom:4px">비교 요소 '+(s.axes_total||0)+'개 중 '+(s.matched||0)+'개 일치</div>'+
-      '<div class="simno">'+s.case_no+' · '+(s.job||'')+(s.years!=null?' · '+s.years+'년':'')+(s.year?' · '+s.year+'년 판정':'')+'</div>'+
-      '<div class="simwhy">'+(s.reasons||[]).map(r=>'<span class="rtag">'+r+'</span>').join('')+'</div>'+
-      '<button class="docbtn" style="margin-top:7px;font-size:11px;padding:5px 10px" onclick="showDocAt('+regDoc(s.case_no,s.verdict||s.result,s.noncontent||'')+')">📄 이 판정서 내용 보기</button>'+
+    const di=regDoc(s.case_no,s.verdict||s.result,s.noncontent||'');
+    return '<div class="simcard" data-exp="0">'+
+      // 요약 줄(항상 보임) — 클릭하면 상세 토글
+      '<div class="simrow" onclick="toggleSim(this)">'+
+        '<span class="rank">'+(i+1)+'</span>'+
+        '<span class="badge '+cls+'">'+(s.verdict||s.result)+'</span>'+
+        '<span class="simno2">'+s.case_no+(s.year?' · '+s.year+'년':'')+(s.job?' · '+s.job:'')+'</span>'+
+        '<span class="simpct">'+s.match_pct+'%</span>'+
+        '<span class="simcaret">▾</span>'+
+      '</div>'+
+      // 상세(접힘) — 유사 근거 + 본문 보기
+      '<div class="simdetail">'+
+        '<div style="font-size:10px;color:var(--ink3);margin:2px 0 5px">비교 요소 '+(s.axes_total||0)+'개 중 '+(s.matched||0)+'개 일치'+(s.years!=null?' · 근무 '+s.years+'년':'')+'</div>'+
+        '<div class="simwhy">'+(s.reasons||[]).map(r=>'<span class="rtag">'+r+'</span>').join('')+'</div>'+
+        '<button class="docbtn" style="margin-top:7px;font-size:11px;padding:5px 10px" onclick="event.stopPropagation();showDocAt('+di+')">📄 이 판정서 본문 보기</button>'+
+      '</div>'+
       '</div>';
    }).join('');
 }
+function toggleSim(row){const card=row.parentElement;const open=card.dataset.exp==='1';card.dataset.exp=open?'0':'1';
+  const det=card.querySelector('.simdetail');const car=card.querySelector('.simcaret');
+  det.style.display=open?'none':'block';car.textContent=open?'▾':'▴';}
 function renderGuide(res){const g=res.guideline;
  const cpHtml=g.cp.map(c=>{const parts=c.split('▶');const head=parts[0].trim();const tip=parts[1]?parts[1].trim():'';return '<li>'+head+(tip?'<div style="margin-top:5px;padding:6px 9px;background:var(--soft);border-radius:6px;font-size:11.5px;color:var(--accent)"><b>▶</b> '+tip+'</div>':'')+'</li>';}).join('');
  document.getElementById('guide').innerHTML='<p class="excerpt">'+g.lead+'</p><div class="stat"><div class="s ok"><div class="n">'+g.acc+'</div><div class="l">인정</div></div><div class="s no"><div class="n">'+g.rej+'</div><div class="l">불인정</div></div><div class="s hold"><div class="n">'+g.hold+'</div><div class="l">보류/이송</div></div></div><div class="gt">보완 체크포인트 (인정 vs 불인정 비교 기반)</div><ul class="glist">'+cpHtml+'</ul>'+
