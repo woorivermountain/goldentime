@@ -319,18 +319,28 @@ def rank_similar(case, records, topn=3):
     ISSUE_KW = ["퇴행", "기왕", "흡연", "고령"]
 
     # 이 사건에서 '비교 가능한' 요소만 분모로 (입력 안 한 요소는 제외)
-    axes = []
+    # '질병구분(kindc)'은 항상 기본 축 — records가 이미 같은 질병구분으로 조회되므로,
+    # 세부 필터(부위·부담요인)를 선택하지 않아도 같은 질병군 내 유사 판정서를 제시한다.
+    axes = ["disease"]
     if sel_parts: axes.append("part")
     if sel_burden: axes.append("burden")
     if cj: axes.append("job")
     if case_years: axes.append("years")
     denom = max(len(axes), 1)
+    dz_label = case.get("kindc") or case.get("disease_group") or "동일 질병구분"
+    # 분모 보정: 질병구분만 일치(다른 요소 미입력)일 때 100%로 과표시되지 않도록,
+    # 비교 가능한 세부 축이 없으면 분모에 잠재 축 1개를 더해 '부분 일치'로 표현.
+    detail_axes = len(axes) - 1  # 'disease' 제외한 세부 축 수
+    denom_eff = denom if detail_axes > 0 else denom + 1
 
     scored = []
     for p in records:
         matched = 0
         weight = 0.0
         reasons = []
+        # 같은 질병구분 — 기본 일치(records 자체가 동일 kindc 조회분)
+        matched += 1; weight += 0.5
+        reasons.append("같은 질병구분(" + dz_label + ")")
         if "part" in axes:
             hit = [sp for sp in sel_parts if _match_part(p, [sp])]
             if hit:
@@ -354,7 +364,7 @@ def rank_similar(case, records, topn=3):
         if any(k in blob for k in ISSUE_KW):
             weight += 0.2
         if matched > 0:
-            pct = round(matched / denom * 100)
+            pct = round(matched / denom_eff * 100)
             # accnum 등에서 연도 추출(시간 정렬용). 없으면 0.
             ynum = 0
             m = re.search(r"(20\d{2}|19\d{2})", str(p.get("case_no") or ""))
@@ -374,7 +384,7 @@ def rank_similar(case, records, topn=3):
             "body_parts": p.get("body_parts") or [], "burden": p.get("burden") or [],
             "docs": p.get("decisive_docs") or [], "sint": p.get("sintcheong"),
             "noncontent": p.get("noncontent") or p.get("excerpt") or "",
-            "match_pct": pct, "matched": matched, "axes_total": denom, "reasons": reasons,
+            "match_pct": pct, "matched": matched, "axes_total": denom_eff, "reasons": reasons,
             "year": ynum or None,
         })
     return out
