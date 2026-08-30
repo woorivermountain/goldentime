@@ -1,0 +1,27 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+
+# 환경 변수 (서비스키 등 비밀값)
+.env
+*.key
+
+# 검증 결과물 (재생성 가능)
+검증결과_요약.txt
+검증기록_사례별.csv
+*.csv
+
+# OS
+.DS_Store
+Thumbs.db
+
+# 에디터
+.vscode/
+.idea/
+*.swp

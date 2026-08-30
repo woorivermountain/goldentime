@@ -130,7 +130,7 @@ def build_guideline(case, ranked, m):
                       f"누락 직력(타 기관 기록 대조)·노출량 보강 검토")
         cp.append("작업환경측정자료 부재 시 → 현장조사·동료진술로 노출 보강 검토")
 
-    # 인정/기각 판례의 실제 핵심근거(LLM 추출 key_reason) 요약 제공
+    # 인정/기각 판례의 핵심 근거 요약 (판례 DB의 key_reason 필드 사용, 있을 때만)
     acc_reasons = [p.get("key_reason") for p in acc if p.get("key_reason")][:2]
     rej_reasons = [p.get("key_reason") for p in rej if p.get("key_reason")][:2]
 

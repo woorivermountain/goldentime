@@ -26,6 +26,8 @@
   .rec-badge{font-size:8.5px;background:var(--accent2);color:#fff;padding:2px 7px;border-radius:10px;font-weight:700;letter-spacing:0;text-transform:none;margin-left:auto}
   .orsep{display:flex;align-items:center;gap:10px;padding:4px 18px;color:var(--side-ink2);font-size:10px}
   .orsep::before,.orsep::after{content:"";flex:1;height:1px;background:#2c323a}
+  .substep{font-size:10px;color:#8b95a0;line-height:1.5;margin-top:7px;padding-left:2px}
+  .substep b{color:#b9c4cf}
   .lsec .t{font-size:10px;letter-spacing:.1em;text-transform:uppercase;color:var(--side-ink2);margin:0 0 10px;font-weight:600;display:flex;align-items:center;gap:6px}
   .badgeAB{font-size:9px;background:var(--accent2);color:#fff;padding:1px 6px;border-radius:10px;font-weight:700}
   .f{margin-bottom:9px}.f label{display:block;font-size:10.5px;color:var(--side-ink2);margin-bottom:4px}
@@ -178,9 +180,14 @@
   .rfoot{margin-top:26px;padding-top:14px;border-top:1px solid var(--line2);font-size:11px;color:var(--ink3);line-height:1.6}
   /* 유사 사례 카드 */
   .simcard{border:1px solid var(--line2);border-radius:10px;margin-bottom:8px;background:var(--surface);overflow:hidden}
-  .simsum{display:flex;justify-content:space-between;align-items:center;background:var(--soft);border:1px solid var(--accent);border-radius:9px;padding:9px 12px;margin-bottom:8px}
-  .simsum-l{font-size:12px;color:var(--ink)}
-  .simsum-r{font-size:12px;font-weight:700;color:var(--accent);white-space:nowrap}
+  .simsum{background:var(--soft);border:1px solid var(--accent);border-radius:9px;padding:10px 12px;margin-bottom:8px}
+  .simsum-top{display:flex;justify-content:space-between;align-items:center;font-size:12.5px;color:var(--ink)}
+  .simsum-pct{font-size:12px;font-weight:800;color:var(--accent);white-space:nowrap;margin-left:8px}
+  .simsum-chips{display:flex;gap:6px;margin-top:7px;flex-wrap:wrap}
+  .sschip{font-size:11px;font-weight:700;padding:3px 9px;border-radius:12px}
+  .sschip.ok{background:#e3f5f1;color:var(--ok)}
+  .sschip.no{background:#fde7eb;color:var(--no)}
+  .sschip.ho{background:#fdf3dc;color:var(--hold)}
   .simrow{display:flex;align-items:center;gap:8px;padding:10px 11px;cursor:pointer;transition:background .12s}
   .simrow:hover{background:var(--soft)}
   .simrow .rank{flex:none}
@@ -258,29 +265,29 @@
   <aside class="left">
     <div class="brand"><div class="lg">災</div><div><b>판정서 워크벤치</b><span>업무상질병 재해조사 · 공공빅데이터</span></div></div>
 
-    <div class="lsec lsec-main"><p class="t"><span class="badgeAB">A</span> 일상어로 시작 <span class="rec-badge">권장 · 여기서 시작</span></p>
+    <div class="lsec lsec-main"><p class="t"><span class="badgeAB">1</span> 사건 입력 — 일상어를 분류로</p>
       <div class="f"><label>민원인 일상어 / 사실관계</label><input id="s-text" placeholder="예: 허리가 아프고 무거운 걸 많이 드는 일을 오래 했다"></div>
       <button class="btn ghost" id="ex-btn">예시 채우기</button>
-      <button class="btn" id="predict" style="margin-top:6px">분류어로 변환 · 사전 예측 기록</button>
+      <button class="btn" id="predict" style="margin-top:6px">분류어로 변환 → 판정서 트리 조회</button>
+      <div class="substep">일상어를 표준 질병분류로 바꾸고, 그 분류의 판정서 트리·유사 사례까지 바로 보여줍니다.</div>
       <div id="seal-box"></div>
       <div id="adv-box" style="display:none">
         <div class="f" style="margin-top:8px"><label>자문의사 소견 입력 <span style="color:var(--side-ink2);font-weight:400">(판정 결과·질병명을 붙여넣기)</span></label>
           <textarea id="s-adv-text" rows="3" placeholder="예: 신청 상병 '직업성 천식'은 업무와 상당인과관계가 인정되어… (자문의사 소견 일부 또는 질병명)" style="width:100%;padding:8px 10px;border:1px solid var(--line2);border-radius:7px;font-size:12px;font-family:inherit;resize:vertical"></textarea></div>
-        <button class="btn" id="compare" style="background:#3a6b46">결정문에서 분류 인식 · 대조</button>
+        <button class="btn" id="compare" style="background:#3a6b46">자문의사 소견과 대조</button>
+        <div class="substep">자문의사 소견은 <b>언제 들어와도</b> 됩니다. 그 전에 위 트리·가이드라인으로 진행 구조를 먼저 파악하고, 소견이 오면 여기서 대조합니다.</div>
         <div id="cmp-box"></div>
       </div>
     </div>
 
-    <div class="orsep"><span>또는</span></div>
-
-    <div class="lsec lsec-alt"><p class="t"><span class="badgeAB">B</span> 분류 직접 선택</p>
+    <div class="lsec lsec-alt"><p class="t"><span class="badgeAB">또는</span> 분류를 이미 알면 직접 선택</p>
       <div class="f"><label>질병구분</label><select id="i-kindc"></select></div>
       <div class="f"><label>직종 (선택)</label><select id="i-kindb"><option value="">전체</option></select></div>
       <label style="font-size:10.5px;color:var(--side-ink2)"><span id="lab-axis1">신체부위</span> <span style="color:var(--accent2)">(조회 필터)</span></label>
       <div class="chips" id="parts"></div>
       <label style="font-size:10.5px;color:var(--side-ink2);margin-top:6px;display:block"><span id="lab-axis2">부담요인</span> <span style="color:var(--accent2)">(조회 필터)</span></label>
       <div class="chips" id="burdens"></div>
-      <button class="btn" id="gen" style="margin-top:8px">판정서 트리 생성</button>
+      <button class="btn" id="gen" style="margin-top:8px">판정서 트리 조회</button>
       <div class="hint">신체부위·부담요인을 선택하면 유사 판정서가 더 정확해집니다.</div>
     </div>
     <div class="mode"><span class="mdot" id="mdot"></span><span id="mtext">모드 확인 중</span></div>
@@ -433,6 +440,11 @@
         이 도구는 자료 검토를 <b>보조</b>할 뿐이며, 인정·불인정 판정은 하지 않습니다. 또한 <b>② 사실관계 타임라인</b>에 실제 민원인의 직력·의료기록을 입력하면 그 정보가 (외부 배포 환경에서는) 서버로 전송될 수 있습니다. <b>테스트 시에는 실제 개인정보 대신 예시 데이터를 사용</b>해 주세요. 실제 도입 시에는 공단 폐쇄망·온프레미스 환경을 전제로 합니다.
       </div>
 
+      <div class="gnote" style="background:#eef6f5;border-color:var(--accent)">
+        <b>📌 적용 범위 — 요양급여신청 건</b><br>
+        본 시스템의 대상 업무는 <b>요양급여신청서에 대한 1차 재해조사</b>입니다. 판정서 조회 시 본문에 유족급여·장해등급 등의 표지가 있는 건은 자동으로 제외하여, <b>요양급여 신청 건 중심</b>으로 유사 사례를 제시합니다. (장해등급 결정은 판정위원회 심의 대상이 아니므로 원래 거의 포함되지 않으며, 유족급여 건은 본문 키워드로 걸러냅니다.)
+      </div>
+
       <div class="gcard">
         <div class="gch">① 유사 판정서 분석</div>
         <p class="gp"><b>무엇을 하나요?</b> 민원인의 상병을 표준 질병분류로 변환하고, 같은 조건의 실제 판정서(공공데이터)를 찾아 인정/불인정 분포를 트리로 보여줍니다. 가장 유사한 판정서 3건과, 인정·불인정을 가른 핵심 자료를 데이터로 제시합니다.</p>
@@ -517,6 +529,11 @@ async function doPredict(){const text=gv('s-text').trim();if(!text){alert('일�
  document.getElementById('adv-box').style.display='block';
  // 1순위를 질병구분 드롭다운에 자동 반영 (A→B 연결)
  if(p.length){const sel=document.getElementById('i-kindc');if([...sel.options].some(o=>o.value===(p[0].kindc||p[0].disease))){sel.value=(p[0].kindc||p[0].disease);}}
+ // A로 변환하면 곧바로 판정서 트리·유사 사례까지 이어서 보여준다 (분류는 판례를 찾기 위한 전 단계)
+ if(p.length){await run();
+   // 트리 영역으로 부드럽게 스크롤
+   const cw=document.getElementById('cw');if(cw)cw.scrollIntoView({behavior:'smooth',block:'start'});
+ }
 }
 // 결정문 텍스트에서 별표3 질병분류를 인식
 function detectKindc(text){
@@ -661,14 +678,18 @@ function renderSimilar(sim){
       '</div>';
     return;
   }
-  // 요약 헤더: Top3의 인정/불인정 분포 한눈에
+  // 요약 헤더: Top3의 인정/불인정 분포 한눈에 (두 줄 구조 — 좁은 패널에서도 안 깨짐)
   const okN=sim.filter(s=>s.result==='인정').length, noN=sim.filter(s=>s.result==='불인정').length, hoN=sim.length-okN-noN;
   const topMatch=sim[0]?sim[0].match_pct:0;
-  box.innerHTML='<div class="simsum"><div class="simsum-l">'+
-      '<b>요약</b> · 가장 유사한 판정서 '+sim.length+'건 중 '+
-      '<span style="color:var(--ok)">인정 '+okN+'</span> · <span style="color:var(--no)">불인정 '+noN+'</span>'+(hoN?' · <span style="color:var(--hold)">보류 '+hoN+'</span>':'')+
-      '</div><div class="simsum-r">최고 유사도 '+topMatch+'%</div></div>'+
-   '<div style="font-size:10.5px;color:var(--ink3);margin-bottom:8px">카드를 누르면 유사 근거와 판정서 본문을 볼 수 있습니다. (최근 판정 순)</div>'+
+  const ax=sim[0]?(sim[0].axes_total||0):0;
+  box.innerHTML='<div class="simsum">'+
+      '<div class="simsum-top"><b>가장 유사한 판정서 '+sim.length+'건</b><span class="simsum-pct">최고 유사도 '+topMatch+'%</span></div>'+
+      '<div class="simsum-chips">'+
+        '<span class="sschip ok">인정 '+okN+'</span>'+
+        '<span class="sschip no">불인정 '+noN+'</span>'+
+        (hoN?'<span class="sschip ho">보류 '+hoN+'</span>':'')+
+      '</div></div>'+
+   '<div style="font-size:10.5px;color:var(--ink3);margin-bottom:8px">유사도 = 비교 가능한 요소(질병구분·부위·직종 등 '+ax+'개) 중 일치한 비율 · 카드를 누르면 근거와 본문 확인</div>'+
    sim.map((s,i)=>{
     const cls=s.result==='인정'?'ok':s.result==='불인정'?'no':'hold';
     const di=regDoc(s.case_no,s.verdict||s.result,s.noncontent||'');
@@ -797,6 +818,8 @@ function renderTL(a){
   if(!yrs.length){document.getElementById('tl-chart').innerHTML='<div class="ph">직력·의료기록을 입력한 뒤 분석을 누르세요.</div>';document.getElementById('tl-issues').innerHTML='';return;}
   let minY=Math.min(...yrs),maxY=Math.max(...yrs)+1;const span=Math.max(maxY-minY,1);
   const X=v=>((v-minY)/span*100);
+  // 호버 전역화용: 연도 범위·직력 구간을 저장 (빈 곳 호버 시 그 시점 재직 사업장 계산)
+  window.__tlMinY=minY;window.__tlMaxY=maxY;
   const yearOf=str=>{const m=(str||'').match(/(\d{4})(?:[-.](\d{1,2}))?/);if(!m)return null;return +m[1]+(m[2]?(+m[2]-1)/12:0);};
   let html='<div class="sumbar"><div class="sb"><div class="n">'+(s.official_years||0)+'</div><div class="l">4대보험 직력(년)</div></div>'+
     '<div class="sb"><div class="n">'+(s.hazard_years||0)+'</div><div class="l">유해업무 노출(년)</div></div>'+
@@ -823,6 +846,7 @@ function renderTL(a){
   const ticks=[];const step=span>20?5:(span>10?2:1);
   for(let y=Math.ceil(minY);y<=maxY;y+=step)ticks.push(y);
   const careerRows=careerEvs.filter(e=>yearOf(e.start)!=null);
+  window.__tlCareers=careerRows.map(e=>({s:yearOf(e.start),e:yearOf(e.end),site:(e.label||'').split('·')[0].trim(),job:(e.label||'').split('·').slice(1).join('·').trim()}));
   const chartH=careerRows.length*34+12;
   const markers=[...medEvs.map(e=>({...e,c:'var(--no)',ic:'🏥',type:'의료기록'})),...onsetEvs.map(e=>({...e,c:'var(--hold)',ic:'⚑',type:'발병(진단)'}))]
     .filter(e=>yearOf(e.date)!=null).sort((p,q)=>yearOf(p.date)-yearOf(q.date));
@@ -834,11 +858,38 @@ function renderTL(a){
   html+='<div style="position:relative;height:24px;margin:0 16px;border-bottom:1px solid var(--line2)">'+
     ticks.map(y=>'<span style="position:absolute;left:'+X(y)+'%;font-size:10px;color:var(--ink3);font-family:IBM Plex Mono;transform:translateX(-50%);top:7px">'+y+'</span>').join('')+'</div>';
   // 트랙
+  // 직력 겹침 구간 계산 (이중 재직 등) — 두 막대 이상이 겹치는 연도 범위를 하이라이트
+  const ivs=careerRows.map(e=>[yearOf(e.start),yearOf(e.end)!=null?yearOf(e.end):maxY]).filter(v=>v[0]!=null);
+  let overlaps=[];
+  for(let i2=0;i2<ivs.length;i2++)for(let j2=i2+1;j2<ivs.length;j2++){
+    const s2=Math.max(ivs[i2][0],ivs[j2][0]),e2=Math.min(ivs[i2][1],ivs[j2][1]);
+    if(s2<e2)overlaps.push([s2,e2]);
+  }
+  // 겹침 구간 병합(인접·중복 합치기) + 라벨은 정수 연도로
+  overlaps.sort((a2,b2)=>a2[0]-b2[0]);
+  const merged=[];
+  overlaps.forEach(o=>{
+    if(merged.length&&o[0]<=merged[merged.length-1][1])merged[merged.length-1][1]=Math.max(merged[merged.length-1][1],o[1]);
+    else merged.push([...o]);
+  });
+  overlaps=merged;
   html+='<div id="tl-track" style="position:relative;margin:10px 16px 0;height:'+(chartH2+markH)+'px">';
   // 격자선
   html+=ticks.map(y=>'<div style="position:absolute;left:'+X(y)+'%;top:0;bottom:0;width:1px;background:var(--line)"></div>').join('');
+  // 직력 겹침 구간 배경 하이라이트
+  overlaps.forEach(o=>{
+    html+='<div style="position:absolute;left:'+X(o[0])+'%;width:'+(X(o[1])-X(o[0]))+'%;top:0;height:'+chartH2+'px;background:repeating-linear-gradient(135deg,rgba(217,142,4,.10),rgba(217,142,4,.10) 6px,rgba(217,142,4,.04) 6px,rgba(217,142,4,.04) 12px);pointer-events:none;border-left:1px dashed rgba(217,142,4,.5);border-right:1px dashed rgba(217,142,4,.5)"></div>';
+    html+='<div style="position:absolute;left:'+((X(o[0])+X(o[1]))/2)+'%;top:-2px;transform:translateX(-50%);font-size:8.5px;color:var(--hold);background:#fdf3dc;padding:0 5px;border-radius:3px;pointer-events:none;white-space:nowrap">중복 재직 '+Math.floor(o[0])+'~'+Math.floor(o[1])+'</div>';
+  });
+  // 발병(진단) 기준 수직선 — 재해조사의 기준점이므로 뚜렷하게
+  onsetEvs.filter(e=>yearOf(e.date)!=null).forEach(e=>{
+    const x=X(yearOf(e.date));
+    html+='<div style="position:absolute;left:'+x+'%;top:0;bottom:0;width:2px;background:var(--hold);opacity:.75;pointer-events:none"></div>'+
+      '<div style="position:absolute;left:'+x+'%;top:-2px;transform:translateX(4px);font-size:9px;font-weight:700;color:var(--hold);pointer-events:none;white-space:nowrap">⚑ 발병 '+(e.date||'')+'</div>';
+  });
   // 호버 커서선
   html+='<div id="tl-cursor" style="position:absolute;top:0;bottom:0;width:1px;background:var(--accent2);opacity:0;pointer-events:none"></div>';
+  html+='<div id="tl-cursor-year" style="position:absolute;top:-2px;font-size:9px;color:var(--accent);background:var(--soft);padding:0 4px;border-radius:3px;opacity:0;pointer-events:none;transform:translateX(-50%)"></div>';
   // 직력 막대 — 글씨 없이 깔끔하게(라벨은 막대 옆 작게 1줄, 길면 생략)
   careerRows.forEach((e,i)=>{
     const a1=yearOf(e.start),b1=yearOf(e.end);
@@ -868,9 +919,12 @@ function renderTL(a){
 }
 function bindTLHover(){
   const track=document.getElementById('tl-track'),cursor=document.getElementById('tl-cursor'),tip=document.getElementById('tl-tip');
+  const cyear=document.getElementById('tl-cursor-year');
   if(!track)return;
-  const items=[...track.querySelectorAll('.tl-bar,.tl-mark')];
   let active=null;
+  // 트랙 px → 연도 환산용 (renderTL에서 저장한 범위 사용)
+  const rangeMin=window.__tlMinY, rangeMax=window.__tlMaxY;
+  const careers=window.__tlCareers||[];
   function render(el,ev){
     const d=JSON.parse(decodeURIComponent(el.dataset.det));
     let h='<div style="font-weight:700;margin-bottom:3px">'+d.title+'</div>';
@@ -883,21 +937,41 @@ function bindTLHover(){
     tip.style.top=Math.min(ev.clientY+14,window.innerHeight-120)+'px';
     const mid=parseFloat(el.dataset.mid);
     cursor.style.left=mid+'%';cursor.style.opacity='.55';
+    if(cyear){cyear.style.opacity='0';}
   }
-  // 트랙 전체에 하나의 mousemove → 끊김 없음. 마우스 아래 요소를 찾아 처리.
+  function renderEmpty(ev){
+    // 빈 곳: 커서 위치의 연도 + 그 시점 재직 중이던 사업장
+    const r=track.getBoundingClientRect();
+    const frac=Math.min(Math.max((ev.clientX-r.left)/r.width,0),1);
+    const yr=rangeMin+frac*(rangeMax-rangeMin);
+    const yrR=Math.round(yr*10)/10;
+    cursor.style.left=(frac*100)+'%';cursor.style.opacity='.45';
+    if(cyear){cyear.style.left=(frac*100)+'%';cyear.textContent=Math.floor(yr);cyear.style.opacity='1';}
+    const at=careers.filter(c=>c.s!=null&&yr>=c.s&&yr<=(c.e!=null?c.e:rangeMax));
+    if(at.length){
+      let h='<div style="font-weight:700;margin-bottom:3px">'+Math.floor(yr)+'년 시점</div>';
+      h+=at.map(c=>'<div style="color:#cdd3da">· '+(c.site||'(사업장 미확인)')+(c.job?' — '+c.job:'')+'</div>').join('');
+      if(at.length>1)h+='<div style="color:#f3c969;font-size:10px;margin-top:3px">⚠ 이 시점 '+at.length+'곳 중복 재직</div>';
+      tip.innerHTML=h;tip.style.display='block';
+      tip.style.left=Math.min(ev.clientX+14,window.innerWidth-270)+'px';
+      tip.style.top=Math.min(ev.clientY+14,window.innerHeight-120)+'px';
+    } else {
+      tip.style.display='none';
+    }
+  }
+  // 트랙 전체에 하나의 mousemove → 어디서든 끊김 없이 반응
   track.addEventListener('mousemove',ev=>{
     const t=ev.target.closest('.tl-bar,.tl-mark');
     if(t){
       if(active&&active!==t)active.style.borderColor='transparent';
       active=t;t.style.borderColor='var(--accent)';
       render(t,ev);
-    } else if(active){
-      active.style.borderColor='transparent';active=null;tip.style.display='none';cursor.style.opacity='0';
     } else {
-      tip.style.display='none';cursor.style.opacity='0';
+      if(active){active.style.borderColor='transparent';active=null;}
+      renderEmpty(ev);
     }
   });
-  track.addEventListener('mouseleave',()=>{if(active){active.style.borderColor='transparent';active=null;}tip.style.display='none';cursor.style.opacity='0';});
+  track.addEventListener('mouseleave',()=>{if(active){active.style.borderColor='transparent';active=null;}tip.style.display='none';cursor.style.opacity='0';if(cyear)cyear.style.opacity='0';});
 }
 document.getElementById('tl-demo').onclick=loadDemo;
 // 질병구분 드롭다운 채우기(타임라인용)

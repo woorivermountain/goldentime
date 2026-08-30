@@ -5,9 +5,9 @@
 민원인 일상어 → 산재보험법 시행령 별표3 인정요건 대조 → 표준 질병분류 후보.
 
 설계 원칙:
-  - AI는 '판정'하지 않는다. 별표3 요건과 입력의 '겹침'을 근거와 함께 후보로 제시.
-  - 자문의사 결정 전에 예측을 '봉인'(타임스탬프 기록)하여 독립성을 보장.
-  - 봉인된 예측 ↔ 자문의사 결정을 사후 '대조'하여 일치=근거기록 / 불일치=재해조사 쟁점.
+  - 판정하지 않는다. 별표3 요건과 입력의 겹침을 근거와 함께 후보로 제시할 뿐이다.
+  - 예측을 자문의사 판단 전에 타임스탬프로 독립 기록하여 앵커링(선입견)을 차단한다.
+  - 기록된 예측과 자문의사 판단을 사후 대조한다. 일치=근거 기록, 불일치=재해조사 쟁점.
 
 출처: 산업재해보상보험법 시행령 별표3(제34조제3항 관련).
       ※ 현재는 핵심 요건을 내장. 법령 API(국가법령정보 OC) 연동 시 동적 로딩으로 교체 가능.
@@ -162,7 +162,7 @@ def predict(case_text, exposure="", job="", years=None):
 
 
 def seal_prediction(case_id, case_text, predictions):
-    """예측 봉인: 타임스탬프 + 해시로 '자문의사보다 먼저, 독립적으로' 생성됐음을 기록."""
+    """예측을 타임스탬프+해시로 고정 기록한다. 자문의사 판단보다 먼저, 독립적으로 생성됐음을 증명한다."""
     ts = datetime.now(timezone.utc).isoformat()
     payload = json.dumps({"case_id": case_id, "case_text": case_text,
                           "predictions": predictions, "sealed_at": ts},
@@ -173,7 +173,7 @@ def seal_prediction(case_id, case_text, predictions):
 
 
 def compare(sealed, advisory_disease):
-    """봉인된 AI 예측 ↔ 자문의사 결정 대조. 둘 다 질병구분(kindc) 기준으로 비교."""
+    """기록된 예측과 자문의사 판단을 대조한다. 둘 다 질병구분(kindc) 기준."""
     preds = sealed["predictions"]
     # 예측의 kindc(판정서 분류값) 기준. 없으면 disease로 폴백.
     def pk(p):
@@ -206,14 +206,14 @@ def compare(sealed, advisory_disease):
 
 
 if __name__ == "__main__":
-    # 데모: 일상어 입력 → 예측 → 봉인 → 자문의사 입력 → 대조
+    # 데모: 일상어 입력 → 예측 → 기록 → 자문의사 입력 → 대조
     txt = "귀가 먹먹하고 시끄러운 공장에서 오래 일했다"
     preds = predict(txt, exposure="소음", job="프레스공", years=15)
     print("[예측]")
     for p in preds:
         print(f"  {p['disease']} (신뢰도 {p['confidence']}) · {p['ref']} · 신호 {p['matched_signals']}")
     sealed = seal_prediction("CASE-001", txt, preds)
-    print(f"\n[봉인] {sealed['sealed_at']} · hash={sealed['seal_hash']}")
+    print(f"\n[기록] {sealed['sealed_at']} · hash={sealed['seal_hash']}")
     print("\n[자문의사 입력] 소음성난청")
     print("[대조]", json.dumps(compare(sealed, "소음성난청"), ensure_ascii=False))
     print("\n[자문의사가 다르게 본 경우] 이명(→ 후보 밖)")
